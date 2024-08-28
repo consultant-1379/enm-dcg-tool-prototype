@@ -1,0 +1,15 @@
+#!/bin/bash
+if [[ ! -s $1 ]]; then
+    exit 0
+fi
+echo "Effective User ID: $(id)" >$2
+for cmd in $(cat $1); do
+echo "Command : ${cmd}";
+echo "Date/Time: $(date)";
+echo -e "\n"
+time ${cmd};
+echo -e "\n"
+RET=$?;
+echo "Return Code: $RET";
+echo "#########################";
+done >>$2 2>&1

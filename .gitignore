@@ -1,0 +1,13 @@
+# Pycharm project cache files
+.idea/
+
+# Visual Studio Code cache files
+.vs/
+
+# Python byte code
+__pycache__/
+*.pyc
+
+# Virtual Environments
+venv/
+env/

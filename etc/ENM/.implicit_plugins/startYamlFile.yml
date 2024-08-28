@@ -1,0 +1,17 @@
+---
+ 
+config_name: startYamlFile Extra functions
+config_type: app
+ 
+functions: 
+- func_name: Commands
+  server_type: localhost
+  execute_commands:
+    - /bin/df -k
+    - /bin/ps -auxww
+    - /usr/bin/uptime
+    - /sbin/ip a
+    - /bin/cat /etc/hosts
+    - /usr/bin/free -mt
+    - /usr/bin/vmstat -s
+    - /opt/ericsson/enminst/bin/vcs.bsh --groups

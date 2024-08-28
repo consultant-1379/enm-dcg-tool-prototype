@@ -1,0 +1,36 @@
+---
+
+config_name: neo4j
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: vm
+  instances: [ neo4j-0 ]
+  files: [ /var/log/messages,/var/VRTSvcs/log/engine_A.log,/ericsson/neo4j_data/logs/neo4j.log,/ericsson/neo4j_data/logs/debug.log*,/ericsson/neo4j_data/metrics/,/ericsson/neo4j_data/logs/query.log ]
+
+- func_name: Commands
+  server_type: vm
+  instances: [ neo4j-0 ]
+  execute_commands: [ /sbin/service neo4j status, /opt/ericsson/neo4j/util/dps_db_admin.py cluster, /opt/ericsson/neo4j/util/dps_db_admin.py metadata,"/ericsson/3pp/neo4j/bin/cypher-shell -u neo4j -p Neo4jadmin123 --encryption=false -a 0.0.0.0:7687 'CALL db.indexes();'" ]
+
+- func_name: Files
+  server_type: vm
+  instances: [ neo4j-1 ]
+  files: [ /var/log/messages, /var/VRTSvcs/log/engine_A.log,/ericsson/neo4j_data/logs/neo4j.log,/ericsson/neo4j_data/logs/debug.log*,/ericsson/neo4j_data/metrics/,/ericsson/neo4j_data/logs/query.log ]
+
+- func_name: Files
+  server_type: vm
+  instances: [ neo4j-2 ]
+  files: [ /var/log/messages, /var/VRTSvcs/log/engine_A.log,/ericsson/neo4j_data/logs/neo4j.log,/ericsson/neo4j_data/logs/debug.log*,/ericsson/neo4j_data/metrics/,/ericsson/neo4j_data/logs/query.log ]
+
+- func_name: Commands
+  server_type: vm
+  instances: [ neo4j-1 ]
+  execute_commands: [ /sbin/service neo4j status, /opt/ericsson/neo4j/util/dps_db_admin.py cluster, /opt/ericsson/neo4j/util/dps_db_admin.py metadata,"/ericsson/3pp/neo4j/bin/cypher-shell -u neo4j -p Neo4jadmin123 --encryption=false -a 0.0.0.0:7687 'CALL db.indexes();'" ]
+
+- func_name: Commands
+  server_type: vm
+  instances: [ neo4j-2 ]
+  execute_commands: [ /sbin/service neo4j status, /opt/ericsson/neo4j/util/dps_db_admin.py cluster, /opt/ericsson/neo4j/util/dps_db_admin.py metadata,"/ericsson/3pp/neo4j/bin/cypher-shell -u neo4j -p Neo4jadmin123 --encryption=false -a 0.0.0.0:7687 'CALL db.indexes();'" ]

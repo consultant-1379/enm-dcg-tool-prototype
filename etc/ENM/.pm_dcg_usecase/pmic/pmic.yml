@@ -1,0 +1,49 @@
+---
+##########################################################################################
+config_name: PM Initiation and Collection
+config_type: app # the program can run the functions defined in this file
+
+# To identify possible causes of error scenarios and their resolution on PM Initiation and Collection (PMIC), include the following set of logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson
+    instances: pmserv
+  - loggers:
+    - com.ericsson
+    instances: mspmip
+  - loggers:
+    - com.ericsson
+    instances: mspm
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Manual Actions
+  actions:
+
+  - action_title: If there is an Error in Subscriptions
+    action_list:
+    - Log on Ericsson Network Manager UI and select PM Initiation and Collection (PMIC).
+    - Highlight the subscription clicking on it.
+    - From the menu bar, select Subscription Logs.
+    - Print Screen or use another application to take a screen shot.
+  - action_title: If there is an Error in Node Process
+    action_list:
+    - Log on Ericsson Network Manager UI and select PM Initiation and Collection (PMIC).
+    - From the menu bar, select PM Node Processes.
+    - Select the Process in ERROR.
+    - From the menu bar, select Process Logs.
+    - Print Screen or use another application to take a screen shot.
+  - action_title: If there is a General Issue
+    action_list:
+    - Log on Ericsson Network Manager UI and select PM Initiation and Collection (PMIC).
+    - Navigate to issue.
+    - Print Screen or use another application to take a screen shot.
+###########################################################

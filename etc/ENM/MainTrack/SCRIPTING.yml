@@ -1,0 +1,32 @@
+---
+
+config_name: SCRIPTING
+config_type: app
+
+functions:
+
+- func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers: [ com.ericsson ]
+    instances: [ scripting ]
+  timeout: 600
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Cp From Old Image
+  instances: [ scp_cluster ]
+  vm_list: [ scripting ]
+  log_path: [ /ericsson/3pp/jboss/standalone/log/server.log ]
+  image_age: 1
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ scp_cluster ]
+  files: [ /var/log/messages ]
+
+- func_name: Files
+  server_type: localhost
+  files: [ /var/log/enminst.log,/etc/enm-version,/etc/enm-history ]

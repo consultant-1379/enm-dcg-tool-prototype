@@ -1,0 +1,12 @@
+---
+##########################################################################################
+config_name: CM Mediation
+config_type: app # the program can run the functions defined in this file
+
+# To help to identify the causes for any error scenario that may arise while using CM Mediation to add or remove nodes, or perform CRUDA (Create, Read, Update, Delete or Action) operations, it is recommended to include Virtual Machine (VM) server logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+- func_name: Execute Additional Config File
+  additional_config_file_path: cm_mediation_functions.yml #relative path
+
+    

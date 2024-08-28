@@ -1,0 +1,168 @@
+#!/bin/bash
+
+PROGNAME=${0##*/}
+LCS_BASE="/opt/ericsson/lcs"
+CONFIG_FILE="${LCS_BASE}/lib/libs/variables/configuration.py"
+TAG=$(cat ${CONFIG_FILE} | egrep "[ ]*tag_name" | awk -F "\'" '{print $2}' 2> /dev/null)
+LOGGER="logger -t ${TAG}"
+LCS_PYTHON_SCRIPT="python /opt/ericsson/lcs/bin/log_collection_service.py"
+SHORTOPTS="e:t:dthmsv"
+LONGOPTS="execute:,timeout:,ddc,ticket:,vms:,ne_name:,verbose,help,menu,menu_dir:,yes,exec_dir:,setup,no_manual_action,version,debug"
+ARGS=$(getopt -s bash --options $SHORTOPTS --longoptions $LONGOPTS --name $PROGNAME -- "$@" )
+eval set -- "$ARGS"
+DDC="--DDC=false"
+YES="--yes=false"
+MANUAL_ACTION="--manual_action True"
+EXEC_MODE=""
+Usage() {
+cat <<EOF
+    Usage: ${PROGNAME} [--execute <yaml file path> ] [--menu ] [--menu_dir <path>] [--yes] [ --timeout <0-99> ] [--ticket <dir> ] [--vms=<names of vms>] [--ne_name=<nodename>] [-d|--debug] [-s|--setup] [--no_manual_action] [-v|--version]
+
+optional arguments:
+-h, --help                  show this help message and exit
+-v, --version               display version information
+-s, --setup                 configure the tool
+    --no_manual_action      skip the manual action plugin from yaml
+                            default behaviour is execute everything
+-e, --execute               execute specific YAML file
+    --vms                   list of vms which will be Dynamically added to specific yaml type files.
+    --ne_name               name of network element which will be Dynamically added specific yaml type files
+-m, --menu                  run in menu mode
+    --menu_dir              run with menu to specify directory of yaml files
+    --yes                   Answers yes for all questions asked
+-t, --timeout               time set to reproduce issues in seconds.if set to 0 it
+                            will collect logs without changing Jboss loggers
+    --ddc                   collect ddc logs, default value is false
+-d, --debug                 extra debug output
+    --ticket                CSR/JIRA "Number"
+
+EOF
+}
+USAGE=0
+if [[ $# -eq 1 ]]; then
+   Usage
+   exit 1
+fi
+while true; do
+  case "$1" in
+        -v | --version ) ${LCS_PYTHON_SCRIPT} -v; exit $? ;;
+    -d | --debug ) VERBOSE="--verbose"; shift ;;
+    --ddc ) DDC="--DDC=true"; shift ;;
+    --yes ) YES="--yes=true"; shift ;;
+    -e | --execute ) if [[ -z ${EXEC_MODE} ]]; then { YAML_FILE="$2"; EXEC_MODE="--execute"; shift 2; } else { USAGE=1; shift 2; } fi ;;
+    -t | --timeout ) TIMEOUT="--timeout=$2"; shift 2 ;;
+         --ticket ) TICKET="--ticket=$2"; shift 2 ;;
+    --vms ) VM_LIST="vms=""$2"; shift 2 ;;
+    --ne_name ) NE_NAME="ne_name=""$2"; shift 2 ;;
+    -h | --help ) Usage ; exit;;
+    -m | --menu ) if [[ -z ${EXEC_MODE} ]]; then { EXEC_MODE="--menu"; shift 1; } else { USAGE=1; shift 2; } fi;;
+         --menu_dir ) EXTRA_MENU_OPT="--menu_dir"; _YAML_PATH_="$2"; shift 2;;
+         --exec_dir ) EXTRA_EXEC_OPT="--exec_dir"; _EXEC_YAML_PATH_="$2"; shift 2;;
+        -s | --setup) ${LCS_PYTHON_SCRIPT} --setup; ${LOGGER} "${LCS_PYTHON_SCRIPT} --setup"; exit $? ;;
+        --no_manual_action ) MANUAL_ACTION="--manual_action false"; shift ;;
+    * ) break ;;
+  esac
+done
+
+if [[ ${USAGE} -eq 1 ]]; then
+   Usage
+fi
+
+update_yaml_file() {
+    YAML_VARIABLE=$1
+    if [[ ! -z "${YAML_VARIABLE}" ]] ; then
+        YAML_VAR_KEY=$(echo ${YAML_VARIABLE%%=*})
+        YAML_VAR_VAL=$(echo ${YAML_VARIABLE##*=})
+        ${LOGGER} "Updating the $(basename ${YAML_FILE}) with ${YAML_VAR_VAL}"
+        /bin/cp ${YAML_FILE} ${YAML_FILE}.lcs_auto_updated.yml
+        perl -pi -e "s|${YAML_VAR_KEY}[ ]*=[ ]*GET_V1A_CMD|${YAML_VAR_VAL}|g" ${YAML_FILE}.lcs_auto_updated.yml
+    fi
+    echo "${YAML_FILE}.lcs_auto_updated.yml"
+}
+if [[ "${EXEC_MODE}" == "--execute" ]]; then
+        if [[ -f "${YAML_FILE}" ]]; then
+                /bin/rm -f ${YAML_FILE}.lcs_auto_updated* 2> /dev/null
+                grep "vms=GET_V1A_CMD" ${YAML_FILE} > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                        if [[ ! -z ${VM_LIST} ]]; then
+                                YAML_FILE=$(update_yaml_file ${VM_LIST})
+                        else
+                                ${LOGGER} -s "This yaml file needs vm name(s) using command arguments, Please check script usage."
+                                exit 1
+                        fi
+                fi
+                grep "ne_name=GET_V1A_CMD" ${YAML_FILE} > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                        if [[ ! -z ${NE_NAME} ]]; then
+                                YAML_FILE=$(update_yaml_file ${NE_NAME})
+                        else
+                                ${LOGGER} -s "This yaml file needs network element name using command arguments, Please check script usage."
+                                exit 1
+                        fi
+                fi
+                grep "=GET_V1A_CMD" ${YAML_FILE} > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                        ${LOGGER} -s "un-expected error. Exiting..."
+                        exit 1
+                fi
+        fi
+fi
+if [[ -z ${EXEC_MODE} ]]; then { Usage; exit 1; } fi
+if [[ "${EXEC_MODE}" == "--execute" ]]; then
+       if [[ -f ${YAML_FILE} ]]; then
+           EXEC_MODE="${EXEC_MODE} ${YAML_FILE}"
+       else
+            EXEC_MODE="${EXEC_MODE} --exec_dir ${YAML_FILE}"
+      fi
+fi
+if [[ "${EXEC_MODE}" == "--menu" ]]; then
+   EX_MENU_OPT=${EXTRA_MENU_OPT:---menu_dir}
+   if [[ ! -f /ericsson/tor/data/global.properties ]]; then
+        _YAML_PATH=${_YAML_PATH_:-/opt/ericsson/lcs/etc/EOCM}
+        EX_MENU_OPT="${EX_MENU_OPT} ${_YAML_PATH}"
+   else
+        _YAML_PATH=${_YAML_PATH_:-/opt/ericsson/lcs/etc/}
+        EX_MENU_OPT="${EX_MENU_OPT} ${_YAML_PATH}"
+   fi
+fi
+
+function check_another_instance ()
+{
+	mode="non_menu"
+	ps -ef | grep -v grep | grep '/opt/ericsson/lcs/bin/log_collection_service.py' > /dev/null 2>&1
+	if [[ $? -eq 0 ]]; then
+		ps -ef | grep -v grep | grep '/opt/ericsson/lcs/bin/log_collection_service.py' | grep '\-\-menu' > /dev/null 2>&1
+		if [[ $? -eq 0 ]]; then
+			mode=Menu
+		fi
+		echo "Another instance of LCS is currently running in [${mode}] mode."
+		echo "Please wait till another instance finished or exit the LCS menu."
+		exit 1
+	fi
+}
+check_another_instance
+if [[ -f ${LCS_BASE}/lib/libs/scripts/auto_update.bsh ]]; then
+    if [[ ! -f ${LCS_BASE}/etc/DISABLE_AUTO_UPDATE ]]; then
+         echo "Touch a file [${LCS_BASE}/etc/DISABLE_AUTO_UPDATE] to disable auto-update"
+         bash ${LCS_BASE}/lib/libs/scripts/auto_update.bsh
+         if [[ $? -ne 0 ]]; then
+             ${LOGGER} "Failed to auto-update"
+         fi
+    else
+         echo "Auto-Upgrade is disabled."
+         echo "Remove the [${LCS_BASE}/etc/DISABLE_AUTO_UPDATE] file to re-enable"
+    fi
+fi
+if [[ ! -f /ericsson/tor/data/global.properties ]]; then
+    unset FILE_LIST
+    FILE_LIST=($(find /opt/ericsson/lcs/lib/ -type f -exec grep -il 'pexpect' {} \;))
+    for file in $(echo ${FILE_LIST[@]}); do sudo perl -pi -e "s|import pexpect||g" $file; done
+    if [[ ! -d /opt/ericsson/lcs/log ]]; then
+        sudo mkdir /opt/ericsson/lcs/log
+    fi
+    sudo chmod 777 /opt/ericsson/lcs/log
+fi
+
+${LOGGER} "${LCS_PYTHON_SCRIPT} ${EXEC_MODE} ${TIMEOUT} ${MANUAL_ACTION} ${DDC} ${VERBOSE} ${YES}"
+
+${LCS_PYTHON_SCRIPT} ${EXEC_MODE} ${EX_MENU_OPT} ${TIMEOUT} ${TICKET} ${MANUAL_ACTION} ${DDC} ${YES} ${VERBOSE}

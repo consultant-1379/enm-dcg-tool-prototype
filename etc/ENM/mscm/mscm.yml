@@ -1,0 +1,33 @@
+---
+ 
+config_name: MSCM
+config_type: app
+ 
+functions:
+ 
+- func_name: JBOSS
+  JBoss_servers:
+  - loggers: [ com.ericsson.oss.mediation.network.subscription.notifications, com.ericsson.oss.mediation.network.subscription.workers ]
+    instances: [ mscm ]
+    log_level: [ DEBUG ]
+  timeout: 600
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+  - run_commands: false
+  - commands:
+ 
+- func_name: Files
+  server_type: vm
+  instances: [ mscm ]
+  files: [ /ericsson/3pp/jboss/standalone/log/console.log*, /var/log/messages, /ericsson/3pp/jboss/standalone/log/server-gc.log* ]
+ 
+- func_name: Files
+  server_type: vm
+  instances: [ httpd ]
+  files: [ /var/log/httpd/ ]
+ 
+- func_name: Files
+  server_type: peer servers
+  instances: [ svc_cluster ]
+  files: [ /var/log/messages ]

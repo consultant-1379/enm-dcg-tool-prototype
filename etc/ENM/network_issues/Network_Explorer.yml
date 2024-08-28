@@ -1,0 +1,28 @@
+---
+
+config_name: Network_Explorer
+config_type: app
+
+functions:
+
+- func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers: [ com.ericsson ]
+    instances: [ netex, ]
+  timeout: 600
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Commands
+  server_type: vm
+  instances: [ netex, mscm, mscmce, mscmip ]
+  execute_commands: [ PID=$(/usr/java/default/bin/jps -lv | grep -m 1 jboss | cut -d " " -f1),kill -3 $PID ]
+
+- func_name: Manual Actions
+  actions:
+
+  - action_title: If a non-persistent attribute is showing unexpected value, please click on Non Persistent Attributes drop down in Details panel.
+    action_list: [ Take screenshot showing result table and Details panel with timestamp visible in it,If possible, execute the command in CLI and take screenshot with timestamp visible in it. Try to follow this step at same time you are seeing issue in NetworkExplorer. ]

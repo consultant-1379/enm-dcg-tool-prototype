@@ -1,0 +1,57 @@
+---
+##########################################################################################
+config_name: CM Cell Management
+config_type: app # the program can run the functions defined in this file
+
+# To help to identify possible causes for any error scenario that may arise using CM Cell Management, include the following set of logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+###########################################################
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+
+  - loggers:
+    - com.ericsson.oss.presentation.server.cellmgmt
+    - com.ericsson.oss.services.cm.cellmgmt
+    instances: apserv
+
+  ###########################################################
+
+  - loggers:
+    - com.ericsson.oss.itpf.datalayer
+    instances: apserv
+    level_value: TRACE
+
+  - loggers:
+    - com.ericsson.oss.mediation
+    instances: mscm
+    level_value: TRACE
+
+  - loggers:
+    - com.ericsson.oss.mediation
+    instances: mscmce
+    level_value: TRACE
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+# Connect to httpd VM and collect the access_log and error_log files from /var/log/httpd/ path.
+- func_name: Files
+  server_type: vm
+  instances: httpd
+  files:
+    - /var/log/httpd/.
+
+
+- func_name: Manual Actions
+  actions:
+
+  - action_title: To collect json files
+    action_list:
+    - Add relevant json requests and json responses to the CSR
+
+
+

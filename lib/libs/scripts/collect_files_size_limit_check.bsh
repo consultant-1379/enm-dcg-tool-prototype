@@ -1,0 +1,13 @@
+#!/bin/bash
+DIRPATH=$1
+SIZE=$2
+for file in $(find ${DIRPATH} -type f -exec du -h --block-size=M "{}" + | perl -pi -e 's|([0-9]+)[A-Z]+.(/.+)|$1%$2|g'); do
+    size=$(echo $file | awk -F '%' '{print $1}');
+    name=$(echo $file | awk -F '%' '{print $2}');
+    if [[ $size -le ${SIZE} ]]; then
+        echo $file;
+    else
+        echo "TOO LARGE $file";
+    fi;
+done
+#/bin/rm -- "$0"

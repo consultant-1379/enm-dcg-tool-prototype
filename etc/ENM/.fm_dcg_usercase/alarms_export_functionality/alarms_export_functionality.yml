@@ -1,0 +1,33 @@
+---
+##########################################################################################
+config_name: Alarms export functionality
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmexportservice
+    - com.ericsson.oss.presentation.server.alarmcontroldisplayservice.fmexport
+    - com.ericsson.oss.services.fm.alarmcontroldisplayservice.impl
+    - com.ericsson.oss.services.fm.alarmqueryservice.impl
+    instances: fmserv
+  - loggers:
+    - com.ericsson.oss.presentation.server.webpush.rest.api
+    - com.ericsson.oss.presentation.server.webpush.listener
+    - com.ericsson.oss.presentation.server.webpush.servlet
+    - com.ericsson.oss.presentation.server.webpush.managers.impl
+    instances: wpserv
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+#######################################
+
+
+
+

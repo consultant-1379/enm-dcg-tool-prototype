@@ -1,0 +1,16 @@
+---
+ 
+config_name: endYamlFile Extra functions
+config_type: app
+ 
+functions:
+  - func_name: Commands
+    server_type: localhost
+    execute_commands:
+      - /bin/df -k
+      - /bin/ps -auxww
+
+
+  - func_name: DDC Collection
+  - func_name: Manual Actions
+  - func_name: Collate and Attach Files

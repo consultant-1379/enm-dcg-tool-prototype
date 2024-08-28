@@ -1,0 +1,22 @@
+---
+
+config_name: ulsa_logs
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: vm
+  instances: [ saserv,mscm,mscmce ]
+  files: [ /ericsson/3pp/jboss/standalone/log/,/var/log/messages,/var/log/boot.log ]
+
+- func_name: ENMCLI
+  enm_commands: [ cmedit get * SaJob.* ]
+  enm_role: OPERATOR
+
+- func_name: Cp From Old Image
+  instances: [ svc_cluster ]
+  vm_list: [ saserv,mscm,mscmce ]
+  log_path: [ /ericsson/3pp/jboss/standalone/log/,/var/log/messages,/var/log/boot.log ]
+  image_age: 2
+

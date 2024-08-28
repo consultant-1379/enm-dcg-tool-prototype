@@ -1,0 +1,24 @@
+---
+
+config_name: DPS
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ db_cluster ]
+  files: [ /var/log/messages,/var/log/dps.log,/var/log/mdt.log,/var/VRTSvcs/log/engine_A.log,/opt/ericsson/ERICdpsupgrade/egt/output.txt ]
+
+- func_name: Files
+  server_type: localhost
+  files: [ /etc/opt/ericsson/ERICmodeldeployment/data/repo/modelrepo.xml ]
+
+- func_name: Commands
+  server_type: localhost
+  execute_commands: [ /opt/ericsson/enminst/bin/enm_healthcheck.sh -v,/opt/ericsson/enminst/bin/vcs.bsh --groups ]
+
+- func_name: Commands
+  server_type: peer servers
+  instances: [ db_cluster ]
+  execute_commands: [ su - versant -c /ericsson/versant/bin/dbtool -nosession -info -res -detail dps_integration,su versant -c '/ericsson/versant/bin/dbtool -locks -table dps_integration',su versant -c '/ericsson/versant/bin/dbtool -nosession -trans -info -xa dps_integration',su - versant -c '/ericsson/versant/bin/dbtool -nosession -info -res -detail dps_integration',ls -ltra /ericsson/versant_data/databases/dps_integration/,/ericsson/versant/bin/oscp -l ]

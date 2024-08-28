@@ -1,0 +1,58 @@
+---
+##########################################################################################
+config_name: CM Events NBI
+config_type: app # the program can run the functions defined in this file
+
+# To help to identify possible causes for any error scenario that may arise using the CM Events NBI feature, it is recommended to include the following set of logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson
+    instances: dchistory
+
+  - loggers:
+    - com.ericsson
+    instances: cmevents
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Files
+  server_type: vm
+  instances: solr
+  files:
+    - /ericsson/enm/solr/cm_events_nbi/data/tlog/tlog*
+    - /ericsson/solr/install/solr-4.8.1/enm/logs/solr*
+
+###########################################################
+- func_name: Manual Actions
+  actions:
+
+  - action_title: If there is an Error in CM events being retrieved via PULL request on NBI
+    action_list:
+    - Login to the Ericsson Network Manager UI.
+    - 'Enter the following URL in your Ericsson Network Manager UI browser: https://<customer-domain-name>/ENM-mgmt/event'
+    - Use Print Screen or another application to take a screen shot.
+    - 'Enter the following URL in your Ericsson Network Manager UI browser: https://<customer-domain-name>/ENM-mgmt/event/filters'
+    - Use Print Screen or another application to take a screen shot.
+    - ' Enter the following URL in your Ericsson Network Manager UI browser: https://<customer-domain-name>/ENM-mgmt/event/events'
+    - Use Print Screen or another application to take a screen shot.
+
+  - action_title: If there is a General Issue
+    action_list:
+    - Log on Ericsson Network Manager UI and execute the CM events NBI URL that requires support.
+    - Use Print Screen or another application to take a screen shot.
+
+  - action_title: 'DDC Logs (Note: DDC does not support debug level at the moment.)'
+    action_list:
+    - Logon to DDP server.
+    - Add the DDP link to the CSR.
+    - Under ENM Statistics click into logs --> Click "Download ElasticSearch Logs" and download the relevant compressed log file. (This is a combined log file for all the VM's)
+###########################################################
+
+

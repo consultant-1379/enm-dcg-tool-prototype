@@ -1,0 +1,27 @@
+---
+
+config_name: NETLOG
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: localhost
+  files: [ /var/log/enminst.log,/etc/enm-version,/etc/enm-history ]
+
+- func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers: [ com.ericsson ]
+    instances: [ fmserv,msfm,mssnmpfm,comecimpolicy,msnetlog,mscm,mscmce ]
+  timeout: 600
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Cp From Old Image
+  instances: [ svc_cluster ]
+  vm_list: [ msnetlog ]
+  log_path: [ /ericsson/3pp/jboss/standalone/log/server.log ]
+  image_age: 1

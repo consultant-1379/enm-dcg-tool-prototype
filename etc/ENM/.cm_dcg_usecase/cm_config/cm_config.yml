@@ -1,0 +1,46 @@
+---
+##########################################################################################
+config_name: CM Config
+config_type: app # the program can run the functions defined in this file
+# To help to identify the possible causes of error scenarios and their efficient resolution in CM Config, it is recommended to include Virtual Machine (VM) Server logs or DDC logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+###########################################################
+
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services
+    - com.ericsson.enm.cm.router
+    - com.ericsson.oss.itpf.datalayer.historicalservice
+    - com.ericsson.oss.itpf.datalayer.dps.query
+    instances: cmserv
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+###########################################################
+
+- func_name: Files
+  server_type: vm
+  instances: solr
+  files:
+    - /ericsson/enm/solr/cm_history/data/tlog/tlog*
+    - /ericsson/solr/install/solr-4.8.1/enm/logs/solr*
+    - /var/log/messages
+###########################################################
+
+###########################################################
+- func_name: Manual Actions
+  actions:
+  - action_title: collect DDC logs
+    action_list:
+    - Log on to DDP server where the site for the deployment is hosted.
+    - Navigate to the correct site for the deployment.
+    - Copy the DDP URL link for the site to the CSR.
+    - In ENM Statistics page, click the link Logs, then click the link Download ElasticSearch Logs. Download the relevant compressed log file(s) for the time period when the issue occurred (this is a combined log file for all the VM's).
+###########################################################
+
+

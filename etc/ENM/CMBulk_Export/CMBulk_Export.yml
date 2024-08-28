@@ -1,0 +1,39 @@
+config_name: CMBulk_Export
+config_type: app
+
+functions:
+
+- func_name: JBOSS
+  JBoss_servers:
+  - loggers: [ com.ericsson.oss.services.cm.export ]
+    instances: [ impexpserv ]
+    log_level: [ DEBUG ]
+  timeout: 600
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+  - run_commands: false
+  - commands:
+
+- func_name: Files
+  server_type: vm
+  instances: [ impexpserv ]
+  files: [ /ericsson/3pp/jboss/standalone/log/console.log*, /var/log/messages, /ericsson/3pp/jboss/standalone/log/server-gc.log* ]
+
+- func_name: Files
+  server_type: vm
+  instances: [ httpd ]
+  files: [ /var/log/httpd/ ]
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ svc_cluster ]
+  files: [ /var/VRTSvcs/log/engine_A.log,/var/log/messages ]
+
+- func_name: Cp From Old Image
+  instances: [ svc_cluster ]
+  vm_list: [ impexpserv ]
+  log_path: [ /ericsson/3pp/jboss/standalone/log/,/var/log/messages ]
+  image_age: 2
+
+  

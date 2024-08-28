@@ -1,0 +1,52 @@
+---
+##########################################################################################
+config_name: CM Mediation with Nodes Supporting ECIM
+config_type: app # the program can run the functions defined in this file
+
+# To identify possible causes of error scenarios and their resolution on CM mediation with nodes supporting ECIM, include the log set in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+
+- func_name: Manual Actions
+  actions:
+  # Step 1
+  - action_title: If you encounter a reproducible error while performing an operation through the Command Line Interface (CLI)
+    action_list:
+    - Save the CLI response output to a file by entering the command and pressing CTRL + ENTER.
+    - Save the CLI command to the cli_cmd.txt file
+
+  # Step 2
+  - action_title: If the operation was performed by using an import file or CLI batch file,  into the /enm/enm_error directory.
+    action_list:
+    - Copy the file(s)
+
+# Step 3 - 6
+- timeout: 60
+  instances: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.mediation
+    - com.ericsson.nms.mediation
+    instances: cmserv
+    level_value: TRACE
+  - loggers:
+    - com.ericsson.oss.mediation
+    - com.ericsson.nms.mediation
+    instances: medrouter
+    level_value: TRACE
+  - loggers:
+    - com.ericsson.oss.mediation
+    - com.ericsson.nms.mediation
+    instances: mscmce
+    level_value: TRACE
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+
+
+                
+
+

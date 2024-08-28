@@ -1,0 +1,86 @@
+introduction: ''
+last_message: 'Finished LCS setup.'
+
+parameters:
+
+  - name: vm_private_key
+    displaying_name: VM Private Key
+    stored_in_db: True
+    prompt: Enter the path for private Key for cloud-user
+    check_file: True
+    default: /root/.ssh/vm_private_key
+    confidential: True
+
+  - name: cli_username
+    displaying_name: ENM Username
+    stored_in_db: True
+    prompt: Enter ENM Username
+    confidential: False
+    default: ''
+
+  - name: cli_password
+    displaying_name: CLI Password
+    stored_in_db: True
+    prompt: Enter ENM user Password
+    confidential: True
+    default: ''
+
+  - name: cli_role
+    displaying_name: Role
+    stored_in_db: True
+    prompt: "Enter ENM Role"
+    confidential: False
+    default: 'OPERATOR'
+
+  - name: peer_server_username
+    displaying_name: Username
+    stored_in_db: True
+    physical_server_only: True
+    prompt: Enter physical Peer Server's username for SSH
+    default: litp-admin
+
+  - name: peer_server_password
+    displaying_name: Password
+    stored_in_db: True
+    physical_server_only: True
+    prompt: Enter physical Peer server's password for SSH
+    confidential: True
+
+  - name: peer_server_root_password
+    displaying_name: Root Password
+    physical_server_only: True
+    stored_in_db: True
+    prompt: Enter Root Password for Peer Server
+    confidential: True
+
+  - name: DDP_URL
+    displaying_name: DDP URL
+    prompt: 'Enter DDP URL:'
+    confidential: False
+    default: ''
+
+  - name: report_output_dir
+    displaying_name: Output Directory for Logs
+    prompt: 'Enter the shared path for the directory to store the output data.\n[Note]: this path must be available on all VMs.'
+    default: /ericsson/enm/dumps/
+    check_dir: True
+
+  - name: ftp_url
+    displaying_name: FTP URL
+    stored_in_db: True
+    default: ftp.athtem.eei.ericsson.se
+    prompt: Enter URL for FTP server for Antomatic upload
+
+  - name: ftp_username
+    displaying_name: FTP username
+    default: anonymous
+    stored_in_db: True
+
+    prompt: Enter Username for FTP server
+
+  - name: ftp_password
+    displaying_name: FTP Password
+    stored_in_db: True
+    prompt: Enter Password for FTP server
+    default: anonymous
+    confidential: True

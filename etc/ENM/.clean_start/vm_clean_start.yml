@@ -1,0 +1,42 @@
+---
+
+config_name: vm_clean_start
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: vm
+  instances: [ vms=GET_V1A_CMD ]
+  files: [ /ericsson/3pp/jboss/standalone/log/server.log, /ericsson/3pp/jboss/standalone/log/console.log, /var/log/messages ]
+
+- func_name: Files
+  server_type: vm
+  instances: [ vms=GET_V1A_CMD ]
+  files: [ /var/log/cloud-init-output.log, /var/log/boot.log, /var/log/dmesg.old ]
+
+- func_name: Files
+  server_type: vm
+  instances: [ vms=GET_V1A_CMD ]
+  files: [ /var/log/vmmonitor.log, /var/log/healthcheck.log, /var/log/lastlog ]
+
+- func_name: Files
+  server_type: vm
+  instances: [ vms=GET_V1A_CMD ]
+  files: [ /var/log/messages, /var/log/cloud-init-output.log,/var/log/boot.log  ]
+
+- func_name: Files
+  server_type: vm
+  instances: [ vms=GET_V1A_CMD ]
+  files: [/var/log/dmesg.old, /var/log/vmmonitor.log,/var/log/healthcheck.log]
+
+- func_name: Files
+  server_type: vm
+  instances: [ vms=GET_V1A_CMD ]
+  files: [ /var/log/lastlog, /var/VRTSvcs/log/engine_A.log ]
+
+- func_name: Cp From Old Image
+  instances: [ svc_cluster ]
+  vm_list: [ vms=GET_V1A_CMD ]
+  log_path: /var/log/messages,/var/log/debug.log
+  image_age: "1"

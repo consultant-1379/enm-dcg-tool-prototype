@@ -1,0 +1,52 @@
+---
+##########################################################################################
+config_name: Test
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+##########################################################################################
+
+# Function 1
+- func_name: JBOSS Debug
+  timeout: 300
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  - /ericsson/3pp/jboss/standalone/log/server.log.1
+  message: Please reproduce JBOSS Debug issues
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmcontroldisplayservice
+    - com.ericsson.oss.services.fm.alarmqueryservice.impl
+    - com.ericsson.oss.services.fm.fmparser
+    - com.ericsson.oss.services.alarmcontroldisplayservice.webpush
+    instances: fmserv
+  - loggers:
+    - com.ericsson.oss.services.alarm.action.service
+    instances: fmhistory
+  - loggers:
+    - com.ericsson.oss.presentation.server.webpush.rest.api
+    - com.ericsson.oss.presentation.server.webpush.listener
+    - com.ericsson.oss.presentation.server.webpush.servlet
+    - com.ericsson.oss.presentation.server.webpush.managers.impl
+    instances: wpserv
+  - loggers:
+    - com.ericsson.oss.services.fm.fmxadaptor
+    instances: fmalarmprocessing
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+##########################################################################################
+# Function 3
+- func_name: Files
+  server_type: vm
+  instances: fmserv
+  files:
+    - /ericsson/3pp/jboss/standalone/log/server.log
+    - /ericsson/3pp/jboss/standalone/log/server.log.1
+
+- func_name: Files
+  server_type: vm
+  instances: fmhistory
+  files:
+    - /ericsson/3pp/jboss/standalone/log/server.log.2
+    - /ericsson/3pp/jboss/standalone/log/server.log.3

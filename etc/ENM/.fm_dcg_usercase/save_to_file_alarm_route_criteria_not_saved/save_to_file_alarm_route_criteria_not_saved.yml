@@ -1,0 +1,25 @@
+---
+##########################################################################################
+config_name: Alarm Route criteria not saved to file
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmroutingservice.file
+    - com.ericsson.oss.services.fm.alarmroutemanagement
+    instances: fmhistory
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+#######################################
+
+
+
+

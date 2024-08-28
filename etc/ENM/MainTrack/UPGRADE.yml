@@ -1,0 +1,25 @@
+---
+
+config_name: UPGRADE
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: localhost
+  files: [ /var/log/enminst.log,/etc/enm-version,/etc/enm-history,/var/log/litp/,/var/log/messages,/var/log/boot.log ]
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ all_clusters ]
+  files: [ /var/log/messages,/var/log/boot.log,/var/VRTSvcs/log/engine_A.log ]
+
+- func_name: Commands
+  server_type: localhost
+  execute_commands: [ litp show_plan,/opt/ericsson/enminst/bin/vcs.bsh --groups,/opt/ericsson/enminst/bin/enm_healthcheck.sh -v ]
+
+- func_name: Commands
+  server_type: peer servers
+  instances: [ all_clusters ]
+  execute_commands: [ gabconfig -a,lltstat,lltconfig,hastatus -sum ]
+

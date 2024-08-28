@@ -1,0 +1,25 @@
+config_name: CMBulk_Export
+config_type: app
+
+functions:
+
+- func_name: JBOSS
+  JBoss_servers:
+  - loggers: [ com.ericsson.oss.services.cm.export ]
+    instances: [ localhost ]
+    log_level: [ DEBUG ]
+  timeout: 600
+  log_file_paths:
+  - /app/ecm/appserver/jboss-eap-6.4/standalone/log/server.log
+  Jboss_commands:
+  - run_commands: false
+  - commands:
+
+- func_name: Files
+  server_type: localhost
+  files: [ /ericsson/3pp/jboss/standalone/log/console.log*, /var/log/messages, /ericsson/3pp/jboss/standalone/log/server-gc.log* ]
+
+- func_name: Commands
+  server_type: localhost
+  execute_commands: [ /bin/date, /bin/time ]
+

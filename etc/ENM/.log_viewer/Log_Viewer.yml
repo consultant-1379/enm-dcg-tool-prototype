@@ -1,0 +1,21 @@
+---
+
+config_name: Log_Viewer
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ db_cluster ]
+  files: [ /var/log/elasticsearch/ ]
+
+- func_name: Commands
+  server_type: peer servers
+  instances: [ db_cluster ]
+  execute_commands: [ su - litp-admin,'curl "http://elasticsearch:9200/_stats?pretty" -o /tmp/es_stats.json' ]
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ db_cluster ]
+  files: [ /var/log/elasticsearch/tmp/es_stats.json ]

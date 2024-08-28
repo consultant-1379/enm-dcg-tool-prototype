@@ -1,0 +1,7 @@
+---
+##########################################################################################
+config_name: OSS-RC to ENM Data Migration
+config_type: app # the program can run the functions defined in this file
+# To identify possible causes of error scenarios and their resolution during OSS-RC to ENM Data Migration, include the following set of logs in the Customer Support Request (CSR).
+##########################################################################################
+functions: []

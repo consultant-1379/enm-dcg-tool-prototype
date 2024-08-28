@@ -1,0 +1,31 @@
+---
+##########################################################################################
+config_name: Issue Suspected on Auto Provisioning
+config_type: app # the program can run the functions defined in this file
+# To help to identify possible causes for any error scenario, it is recommended to include the following Auto Provisioning (AP) files, and logs in the Customer Support Request (CSR).
+##########################################################################################
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss
+    instances: apserv
+
+  - loggers:
+    - com.ericsson.oss
+    instances: msap
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Manual Actions
+  actions:
+
+  - action_list:
+    - 'Steps to collect the integration artifacts and integration project file. on DCG page 28'
+    - 'Steps to collect the node logs. on DCG page 29'
+    

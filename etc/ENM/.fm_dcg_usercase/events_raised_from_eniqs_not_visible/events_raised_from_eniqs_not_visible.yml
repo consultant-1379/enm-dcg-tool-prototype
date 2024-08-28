@@ -1,0 +1,37 @@
+---
+##########################################################################################
+config_name: Events raised from ENIQ-S are not visible in FM UIs
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.fm.erreventsservice.errevents
+    - com.ericsson.oss.services.alarmcontroldisplayservice
+    instances: fmserv
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmprocessor.eventhandlers
+    - com.ericsson.oss.services.fm.alarmprocessor.util
+    - com.ericsson.oss.services.fm.alarmprocessor.fmavailabilityhandler.alarmprocessor.eventhandlers
+    - com.ericsson.oss.services.fm.alarmprocessor.fmavailabilityhandler
+    instances: fmalarmprocessing
+  - loggers:
+    - com.ericsson.oss.presentation.server.webpush.rest.api
+    - com.ericsson.oss.presentation.server.webpush.listener
+    - com.ericsson.oss.presentation.server.webpush.servlet
+    - com.ericsson.oss.presentation.server.webpush.managers.impl
+    instances: wpserv
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+#######################################
+
+
+
+

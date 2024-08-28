@@ -1,0 +1,24 @@
+---
+##########################################################################################
+config_name: Issue Suspected on Node CLI Launch
+config_type: app # the program can run the functions defined in this file
+
+# To identify possible causes of error scenarios and their resolution on Node CLI Launch, include the following set of logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+
+# Step 1
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson
+    instances: nodecli
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+###########################################################
+  

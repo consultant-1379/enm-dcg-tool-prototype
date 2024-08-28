@@ -1,0 +1,14 @@
+---
+
+config_name: LITP_MS
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: localhost
+  files: [ /var/log/litp/litp_libvirt.log,/var/log/enminst.log,/etc/enm-version,/etc/enm-history,/var/log/litp/litpd_error.log,/var/log/litp/litpd_access.log,/var/log/puppet/masterhttp.log,/var/log/autoDeploy/serviceCheck/clusterData.txt,/var/log/autoDeploy/serviceCheck/enmInventory.txt,/var/log/autoDeploy/serviceCheck/vmServicesOnly.txt,/var/log/messages,/var/log/mcollective-audit.log,/var/log/mcollective.log ]
+
+- func_name: Commands
+  server_type: localhost
+  execute_commands: [ /opt/ericsson/enminst/bin/enm_healthcheck.sh -v,/bin/bash mco rpc enminst get_mem -v,/var/tmp/RNL/logcollector/lib/litp_export.bsh,litp show_plan,/opt/ericsson/enminst/bin/vcs.bsh --groups ]

@@ -1,0 +1,43 @@
+---
+##########################################################################################
+config_name: Issue Suspected on CM CLI
+config_type: app # the program can run the functions defined in this file
+
+# To help to identify possible causes for any error scenario that may arise using CM CLI, include the following set of logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson
+    instances: cmserv
+  - loggers:
+    - com.ericsson
+    instances: netex
+  - loggers:
+    - com.ericsson
+    instances: medrouter
+  - loggers:
+    - com.ericsson
+    instances: mscm
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Manual Actions
+  actions:
+
+  - action_title: Collect DDC logs
+    action_list:
+    - 'Log the time at which the fault was found on the CSR.'
+    - 'Logon to DDP server'
+    - 'Add the DDP link to the CSR'
+    - In ENM Statistics page, click the link Logs, then click the link Download ElasticSearch Logs, and download the relevant compressed log file. (This is a combined log file for all the VM's)
+###########################################################
+
+  
+
+

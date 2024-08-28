@@ -1,0 +1,16 @@
+---
+##########################################################################################
+config_name: Step 7
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- func_name: Manual Actions
+  actions:
+  - action_title: 'Include additional information about the jobs on the system. For example, to include the job status of all activate jobs on the system, run the following command in the CLI and save the response to file (using Ctrl+Enter) for inclusion in the CSR:'
+    action_list:
+    - ENM activate --status
+  - action_title: 'To include additional information about a specific activate job, run the following command in the ENM CLI and save the response to file for inclusion in the CSR:'
+    action_list:
+    - 'ENM activate --status --job <jobID> --verbose (where <jobID> is the job ID for a specific activate job. Note: there is no --verbose option for CM Config Delete.)'
+
+

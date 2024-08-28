@@ -1,0 +1,36 @@
+---
+
+config_name: Single_Sign_On
+config_type: app
+
+functions:
+
+- func_name: Commands
+  server_type: peer servers
+  instances: [ svc_cluster ]
+  execute_commands: [ hagrp -state | grep sso ]
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ svc_cluster ]
+  files: [ /var/log/messages,/var/log/sso/,var/log/sso/csv ]
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ svc_cluster ]
+  files: [ /var/log/sso/debug,/var/log/sso/opends,/opt/ericsson/sso/heimdallr/install.log ]
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ svc_cluster ]
+  files: [ /opt/ericsson/sso/heimdallr/opends/logs/replication,/ericsson/3pp/jboss/standalone/log/console.log,/ericsson/3pp/jboss/standalone/log/server.log ]
+
+- func_name: Files
+  server_type: vm
+  instances: sso
+  files: [ /var/log/messages, /var/log/sso/, var/log/sso/csv, /var/log/sso/debug ]
+
+- func_name: Files
+  server_type: vm
+  instances: sso
+  files: [ /var/log/sso/opends, /opt/ericsson/sso/heimdallr/, /opt/ericsson/sso/heimdallr/opends/logs/replication, /ericsson/3pp/jboss/standalone/log/console.log ]

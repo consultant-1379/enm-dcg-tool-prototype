@@ -1,0 +1,42 @@
+---
+
+config_name: FM
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: localhost
+  files: [ /var/log/enminst.log,/etc/enm-history,/etc/enm-version ]
+
+- func_name: Commands
+  server_type: peer servers
+  instances: [ svc_cluster ]
+  execute_commands: [ netstat -a ]
+
+- func_name: Commands
+  server_type: vm
+  instances: [ msfm,mssnmpfm ]
+  execute_commands: [ netstat -a ]
+
+- func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers: [ com.ericsson ]
+    instances: [ fmserv,msfm,fmhistory,fmx,fmalarmprocessing,fmalarmprocessing,nbalarmirp,fmalarmprocessing,wpserv,msnetlog,uiserv,comecimpolicy,mssnmpfm ]
+  timeout: 300
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Files
+  server_type: vm
+  instances: [ httpd ]
+  files: [ var/log/httpd/error_log,/var/log/httpd/access_log ]
+
+- func_name: Cp From Old Image
+  instances: [ svc_cluster ]
+  vm_list: [ fmserv,msfm,fmhistory,fmx,fmalarmprocessing,fmalarmprocessing,fmalarmprocessing,wpservmsnetlog,mssnmpfm ]
+  log_path: [ /ericsson/3pp/jboss/standalone/log/server.log ]
+  image_age: 1

@@ -1,0 +1,30 @@
+---
+
+config_name: SSO
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: localhost
+  files: [ /var/log/enminst.log,/etc/enm-version,/etc/enm-history ]
+
+- func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers: [ com.ericsson ]
+    instances: [ sso ]
+  timeout: 600
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  - /opt/ericsson/sso/heimdallr/opends/logs/errors
+  - /opt/ericsson/sso/heimdallr/opends/logs/replication
+  - /opt/ericsson/sso/heimdallr/opends/logs/access
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Cp From Old Image
+  instances: [ svc_cluster ]
+  vm_list: [ sso ]
+  log_path: [ /ericsson/3pp/jboss/standalone/log/server.log,/var/log/messages,/opt/ericsson/sso/heimdallr/opends/logs/errors,/opt/ericsson/sso/heimdallr/opends/logs/access,/opt/ericsson/sso/heimdallr/install.log ]
+  image_age: 1

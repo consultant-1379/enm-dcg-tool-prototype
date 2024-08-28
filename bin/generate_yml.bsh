@@ -1,0 +1,677 @@
+#!/bin/bash
+# ********************************************************************
+# Ericsson LMI                                    SCRIPT
+# ********************************************************************
+#
+# (c) Ericsson LMI 2014 - All rights reserved.
+#
+# The copyright to the computer program(s) herein is the property
+# of Ericsson LMI. The programs may be used and/or copied only with
+# the written permission from Ericsson LMI or in accordance with the
+# terms and conditions stipulated in the agreement/contract under
+# which the program(s) have been supplied.
+#
+# ********************************************************************
+# Name    : generate_yml.bsh
+# Purpose : Script to generate the YAML file for data collection.
+#
+# Usage   : .
+#
+# ********************************************************************
+
+about_jboss_plugin () {
+        echo "================================================="
+        echo "                JBOSS Plugin"
+        echo "================================================="
+        echo "JBOSS plugin can be used to collect the JBOSS logs."
+        echo "A different log level can be set on JBOSS logger, in that case this plugin will change the log level and"
+        echo "give a time window to the user to allow to  re-produce the fault or re-run the usecase."
+        echo "JBOSS logs will be collected for that duration to analyse the fault, if timeout value 0 is used then it"
+        echo "only copy the existing server.log without changing any log level."
+        echo "================================================="
+
+}
+
+jboss_plugin() {
+        DTIMEOUT=600
+        DTCP_OPTIONS="-i any -w"
+        DLOGLVEL=DEBUG
+        VALID_LOG_LEVEL="ALL FINEST FINER TRACE DEBUG FINE CONFIG INFO WARN ERROR SEVERE FATAL OFF"
+        DFILE_PATH="/ericsson/3pp/jboss/standalone/log/server.log"
+        while true; do
+                echo -e "\n=> Enter the JBOSS logger level :"
+                echo -e "Example : com.ericsson.enm.service\n"
+                read -a DEBUG_LEVEL -p "Enter input : "
+                echo "${DEBUG_LEVEL}" | egrep '^com.ericsson.*' > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                echo "${DEBUG_LEVEL}" | egrep -w '^com.ericsson$' > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                     echo "WARNING: It is not a good idea to use [${DEBUG_LEVEL}] logger, it can cause extensive logging."
+                     echo "Are you sure you want to use [${DEBUG_LEVEL}], yes/no"
+                     read comericans
+                     if [[ ${comericans} == "yes" ]]; then
+                        break
+                     else
+                        continue
+                     fi
+                fi
+                break
+                fi
+                echo -e "\nInvalid input, Enter again.\n"
+        done
+        while [ -z "${VM_LIST}" ]; do
+                echo -e "\n=> Enter the service/vm instance name :\n"
+                echo "NOTE : More than one name can given separated by comma."
+                echo "if user needs to enter the value dynamically via command option at run time then enter 'vms=GET_V1A_CMD'"
+                echo -e "Example : msfm/mspm/fmserv-1\n"
+                read -a VM_LIST -p "Enter input : "
+        done
+        while [ -z "${LOG_LEVEL}" ]; do
+                echo -e "\n=> Enter the  log level:\n"
+                echo -e "Example : TRACE, DEBUG, FINE etc\n"
+                read -a LOGLVEL -p "Enter input [Default ${DLOGLVEL}]: "
+                if [[ -z ${LOGLVEL} ]]; then
+                    LOGLVEL=${DLOGLVEL}
+                    break
+                else
+                    TLOGLEVEL=${LOGLVEL^^}
+                    LOGLVEL=${TLOGLEVEL}
+                    echo ${VALID_LOG_LEVEL} | grep -w ${LOGLVEL} > /dev/null 2>&1
+                    if [[ $? -eq 0 ]]; then
+                        break
+                    else
+                        echo "Invalid input"
+                        echo "Valid log levels - ${VALID_LOG_LEVEL}"
+                    fi
+                fi
+        done
+
+        while true; do
+                echo -e "\n=> Enter the timeout value [0,60-3600]:\n"
+                echo "NOTE : The log level will be changed for the duration of the timeout value."
+                echo "Default value is [${DTIMEOUT}] seconds, 0 value means JBOSS log level will not be changed."
+                echo -e "Example : 300 this equals 5 minutes\n"
+                read -a TIMEOUT -p "Enter input [Default ${DTIMEOUT}] : "
+                if [[ -z ${TIMEOUT} ]]; then
+                    TIMEOUT=${DTIMEOUT}
+                    break
+                elif [[ ! ( ${TIMEOUT} -eq 0 || ${TIMEOUT} -ge 60 ) ]]; then
+                    echo "Invalid Entry, time has to be either 0 or greater than 60"
+                elif [[ ${TIMEOUT} -gt 3600 ]]; then
+                     echo "Invalid Entry, time has to be less than 3600"
+                else
+                     break
+                fi
+
+        done
+
+        while true; do
+                echo -e "\n=> Enter JBOSS log file path :\n"
+                read -a LOG_FILE_PATH -p "Enter input [Default ${DFILE_PATH}] : "
+                if [[ -z ${LOG_FILE_PATH} ]]; then
+                        LOG_FILE_PATH=${DFILE_PATH}
+                        break
+                fi
+                echo ${LOG_FILE_PATH} | egrep "^/.*" > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                        break
+                fi
+        done
+        if [[ ! (${TIMEOUT} -eq 0) ]]; then
+        while true; do
+            echo -e "\n=>Would you like commands to be executed while JBoss is enabled:\n"
+            while true; do
+                read -a ANSWER -p "Enter yes or no: "
+                if [ "${ANSWER}" == "yes" ]; then
+                    COMMAND_RUN=true
+                    while true; do
+                        echo -e "\n=>Command to be run:\n"
+                        read -a COMMAND_OPTION -p "Enter command: "
+                        echo ${COMMAND_OPTION} | egrep "^/.*" > /dev/null 2>&1
+                        if [[ $? -eq 0 ]]; then
+                            break
+                        fi
+                        echo -e "\nInvalid  path"
+                    done
+                    break
+                elif [ "${ANSWER}" == "no" ]; then
+                    COMMAND_RUN=false
+                    break
+                else
+                    echo "Invalid input"
+                fi
+             done
+             break
+        done
+     fi
+
+    while true; do
+       echo -e "\n=========================================="
+       echo -e "        Check Input Values"
+       echo -e "=========================================="
+       echo -e "Logger:  [${DEBUG_LEVEL}]"
+       echo -e "instances: [ ${VM_LIST} ]"
+       echo -e "log_level: [ ${LOGLVEL} ]"
+       echo -e "timeout: ${TIMEOUT}"
+       echo -e "log_file_paths: ${LOG_FILE_PATH}"
+       if [[ "${TIMEOUT}" > "0" ]]; then
+           echo -e "run_command: ${COMMAND_RUN}"
+           if [[ "${COMMAND_RUN}" == "true" ]]; then
+                echo -e "commands: ${COMMAND_OPTION[@]}"
+           fi
+       fi
+       echo -e "\n=========================================="
+       echo -e "\n"
+       read -a confirmation -p "Please review the above parameter, Enter yes if correct or no to cancel: "
+       if [ "${confirmation}" == "yes" ]; then
+           break
+       elif [ "${confirmation}" == "no" ]; then
+           return
+       fi
+    done
+    spit_jboss >> ${YAML_FILENAME}
+}
+
+spit_jboss() {
+     echo -e "\n- func_name: JBOSS"
+     echo -e "  JBoss_servers:"
+     echo -e "  - loggers: [ ${DEBUG_LEVEL} ]"
+     echo -e "    instances: [ ${VM_LIST} ]"
+     echo -e "    log_level: [ ${LOGLVEL} ]"
+     echo -e "  timeout: ${TIMEOUT}"
+     echo -e "  log_file_paths:"
+     echo -e "  - ${LOG_FILE_PATH}"
+     if [[ "${TIMEOUT}" > "0" ]]; then
+         echo -e "  Jboss_commands:"
+         echo -e "  - run_commands: ${COMMAND_RUN}"
+         echo -e "  - commands: ${COMMAND_OPTION[@]}"
+     fi
+}
+
+about_cmd_plugin() {
+        echo "================================================="
+        echo "                Command Plugin"
+        echo "================================================="
+        echo "Command plugin can be used to run any command on any host in ENM."
+        echo "The output and return code of the command will be stored in a text file with is inside the final report file."
+        echo "This plugin will allow a max of [1800 Sec], to execute the command by default."
+        echo "================================================="
+
+}
+
+cmd_plugin() {
+    while true; do
+                echo -e "\n=> Enter server type :\n"
+                echo -e "Example : vm/localhost/peer servers\n"
+                read -a SRV_TYPE -p "Enter input : "
+                if [[ "${SRV_TYPE[@]}" == "vm" || "${SRV_TYPE[@]}" == "localhost" || "${SRV_TYPE[@]}" == "peer servers" ]]; then
+                        break
+                fi
+                echo -e "\nInvalid input, valid input are [vm/localhost/peer servers].Enter again.\n"
+        done
+        if [[ "${SRV_TYPE[@]}" != "localhost" ]]; then
+            while [ -z "${CMD_SRV_NAME}" ]; do
+                echo -e "\n=> Enter the server instance name :\n"
+                echo "More than one service/instance name can given separated by comma."
+                echo "if user wants to enter the value dynamically via command option at run time then enter 'vms=GET_V1A_CMD'\n"
+                echo -e "Example : msfm/mspm/fmserv-1/localhost/svc_cluster/db-1\n"
+                read -a CMD_SRV_NAME -p "Enter input : "
+                    done
+        fi
+        while [ -z "${CMD_TO_EXEC}" ]; do
+                echo -e "\n=> Enter the command to execute on the server instance :\n"
+                echo -e "Use the full path of the command.More then one command can be enter separated by comma\n"
+                echo -e "If a command has [':'] as part of the command then wrap the command in double quotes [\"\"].\n"
+                echo -e "Example : /bin/hostname,/usr/bin/litp show_plan -a\n"
+                while true; do
+                        read -a CMD_TO_EXEC -p "Enter input : "
+                        echo ${CMD_TO_EXEC} | egrep "^/.*" > /dev/null 2>&1
+                        if [[ $? -eq 0 ]] ;then
+                                break
+                        fi
+                        echo -e "\nInvalid input, enter full path.\n";
+                done
+        done
+       while true; do
+           echo -e "\n=========================================="
+           echo -e "        Check Input Values"
+           echo -e "=========================================="
+           echo -e "server_type: ${SRV_TYPE[@]}"
+           [[ "${SRV_TYPE[@]}" != "localhost" ]] && echo -e "instances: [ ${CMD_SRV_NAME[@]} ]"
+           echo -e "execute_commands: [ ${CMD_TO_EXEC[@]} ]"
+           echo -e "\n=========================================="
+           echo -e "\n"
+           read -a confirmation -p "Please review the above parameter, Enter yes if correct or no to cancel: "
+           if [ "${confirmation}" == "yes" ]; then
+               break
+           elif [ "${confirmation}" == "no" ]; then
+               return
+           fi
+      done
+
+        spit_cmd_plug >> ${YAML_FILENAME}
+}
+
+spit_cmd_plug() {
+        echo -e "\n- func_name: Commands"
+        echo -e "  server_type: ${SRV_TYPE[@]}"
+        [[ "${SRV_TYPE[@]}" != "localhost" ]] && echo -e "  instances: [ ${CMD_SRV_NAME[@]} ]"
+        echo -e "  execute_commands: [ ${CMD_TO_EXEC[@]} ]"
+}
+
+about_image_file_plugin() {
+        echo "================================================="
+        echo "             Copy From Old Image Plugin"
+        echo "================================================="
+        echo "Copy From Old Image plugin can be used to find the old image of a vm,"
+        echo "mount and collect the specified logs form the image."
+        echo "================================================="
+}
+
+image_file_plugin() {
+        AGE_DEFAULT=2
+        while true; do
+                echo -e "\n=> Enter svc instances :\n"
+                echo "More than one name can given separated by comma."
+                echo -e "Example : svc-1,svc-2,svc_cluster\n"
+                read -a PEER_SERVER_INST -p "Enter input : "
+                if ! [ -z "${PEER_SERVER_INST}" ]; then
+                        break
+                fi
+                echo -e "\nInvalid input, Peer server instances cannot be None. Enter again.\n"
+        done
+        while [ -z "${VM_LIST}" ]; do
+                echo -e "\n=> Enter the vm instance names :\n"
+                echo "More than one name can given separated by comma."
+                echo "if wants user to enter the value dynamically via command option at run time then enter vms=GET_V1A_CMD\n"
+                echo -e "Example : msfm,mspm,fmserv-1\n"
+                read -a VM_LIST -p "Enter Input : "
+                if ! [ -z "${VM_LIST}" ]; then
+                        break
+                fi
+                echo -e "\nInvalid input, Vm instances cannot be None. Enter again.\n"
+        done
+        while true; do
+                echo -e "\n=> Enter the path of the files you want to collect :\n"
+                echo "More than one path can given separated by comma."
+                echo -e "Example : /var/log/messages,/var/log/debug.log\n"
+                read -a FILE_TO_COLLECT -p "Enter Input : "
+                echo ${FILE_TO_COLLECT} | egrep "^/.*" > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                        break
+                fi
+                echo -e "\nInvalid path"
+        done
+        while true; do
+                echo -e "\n=> Enter the age of images to search for[Default: ${AGE_DEFAULT} day(s)]:"
+echo ${LOG_FILE_PATH} | egrep "^/.*" > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                        break
+                fi
+                echo -e "Example : 3\n"
+                read -a AGE -p "Enter Input : "
+                if [[ ${AGE} -ge 1 ]]; then
+                        break
+                elif [[ -z ${AGE} ]]; then
+                        AGE=${AGE_DEFAULT}
+                        break
+                fi
+                echo -e "\nInvalid input, must be an integer and be greater than 0."
+        done
+       while true; do
+           echo -e "\n=========================================="
+           echo -e "        Check Input Values"
+           echo -e "=========================================="
+           echo -e "instances: [ ${PEER_SERVER_INST[@]} ]"
+           echo -e "vm_list: [ ${VM_LIST[@]} ]"
+           echo -e "log_path: [ ${FILE_TO_COLLECT[@]} ]"
+           echo -e "image_age: ${AGE}"
+           echo -e "\n=========================================="
+           echo -e "\n"
+           read -a confirmation -p "Please review the above parameter, Enter yes if correct or no to cancel: "
+           if [ "${confirmation}" == "yes" ]; then
+               break
+           elif [ "${confirmation}" == "no" ]; then
+               return
+           fi
+       done
+
+        spit_image_plugin >> ${YAML_FILENAME}
+
+}
+
+spit_image_plugin() {
+        echo -e "\n- func_name: Cp From Old Image"
+        echo -e "  instances: [ ${PEER_SERVER_INST[@]} ]"
+        echo -e "  vm_list: [ ${VM_LIST[@]} ]"
+        echo -e "  log_path: [ ${FILE_TO_COLLECT[@]} ]"
+        echo -e "  image_age: ${AGE}"
+}
+
+
+about_file_plugin() {
+        echo "================================================="
+        echo "                File Plugin"
+        echo "================================================="
+        echo "File plugin can be used to collect any file from any host in ENM."
+        echo "The file will be stored in the final report file at the same location as it was copied from the host."
+        echo "This plugin will allow a max of [105 MB] file size to be copied by default."
+        echo "================================================="
+
+}
+
+file_plugin() {
+        while true; do
+                echo -e "\n=> Enter server type :\n"
+                echo -e "Example : vm/localhost/peer servers\n"
+                read -a FILE_SRV_TYPE -p "Enter input : "
+                if [[ "${FILE_SRV_TYPE[@]}" == "vm" || "${FILE_SRV_TYPE[@]}" == "localhost" || "${FILE_SRV_TYPE[@]}" == "peer servers" ]]; then
+                        break
+                fi
+                echo -e "\nInvalid input, valid input are [vm/localhost/peer servers].Enter again.\n"
+        done
+        if [[ "${FILE_SRV_TYPE[@]}" != "localhost" ]]; then
+        while [ -z "${FILE_SRV_NAME}" ]; do
+            echo -e "\n=> Enter the server instance name :\n"
+            echo "More than one name can given separated by comma."
+            echo "if wants user to enter the value dynamically via command option at run time then enter vms=GET_V1A_CMD\n"
+            echo -e "Example : msfm/mspm/fmserv-1/localhost/svc-1/db-1\n"
+            read -a FILE_SRV_NAME -p "Enter input : "
+        done
+    fi
+        while true; do
+                echo -e "\n=> Enter the path of the file to be collected from the server instance :\n"
+                echo -e "use the full path of the command. More then one filename can be enter separated by comma\n"
+                echo -e "Example : /var/log/install.log,/var/log/messages\n"
+                read -a FILE_TO_COLLECT -p "Enter input : "
+                echo ${FILE_TO_COLLECT} | egrep "^/.*" > /dev/null 2>&1
+                if [[ $? -eq 0 ]]; then
+                        break
+                fi
+                echo -e "\nInvalid path, enter full path."
+        done
+            while true; do
+           echo -e "\n=========================================="
+           echo -e "        Check Input Values"
+           echo -e "=========================================="
+           echo -e "server type: [ ${FILE_SRV_TYPE[@]} ]"
+           if [[ "${FILE_SRV_TYPE[@]}" != "localhost" ]]; then
+              echo -e "instances: [ ${FILE_SRV_NAME[@]} ]"
+           fi
+           echo -e "files: [ ${FILE_TO_COLLECT[@]} ]"
+           echo -e "\n=========================================="
+           echo -e "\n"
+           read -a confirmation -p "Please review the above parameter, Enter yes if correct or no to cancel: "
+           if [ "${confirmation}" == "yes" ]; then
+               break
+           elif [ "${confirmation}" == "no" ]; then
+               return
+           fi
+       done
+        spit_file_plug >> ${YAML_FILENAME}
+}
+
+spit_file_plug() {
+        echo -e "\n- func_name: Files"
+        echo -e "  server_type: ${FILE_SRV_TYPE[@]}"
+        echo -e "  instances: [ ${FILE_SRV_NAME[@]} ]"
+        echo -e "  files: [ ${FILE_TO_COLLECT[@]} ]"
+}
+
+
+about_enmcli_plugin() {
+        echo "================================================="
+        echo "                ENMCLI Plugin"
+        echo "================================================="
+        echo "ENMCLI plugin can be used to run any ENM CLI command and gets its output."
+        echo "It used the scripting VM and ENM CLI python module to run the ENM commands."
+        echo "================================================="
+
+}
+
+enmcli_plugin() {
+        while [ -z "${ENMCLI_CMD}" ]; do
+                echo -e "\n=> Enter the ENM command to execute :\n"
+                echo -e "Please use one command per plugin\n"
+                echo -e "Example : collection list\n"
+                while true; do
+                        NR_INPUT='^[+-]?[0-9]+?$'
+                        read -a ENMCLI_CMD -p "Enter input : "
+                        if ! [[ ${ENMCLI_CMD} =~ ${NR_INPUT} ]] ;then
+                                break
+                        fi
+                        echo -e "\nInvalid input. Cannot input plain number as CLI command\n";
+                done
+        done
+        while ! [[ ${ENMCLI_ROLE} =~ [A-Z] ]]; do
+                echo -e "\n=> (OPTIONAL) Enter the ENM Role to execute the commands with :\n"
+                echo -e "Example : SECURITY_ADMIN/ADMINISTRATOR/OPERATOR/FIELD_TECHNICIAN\n"
+                read -a ENMCLI_ROLE -p "Enter Role : "
+                if [ -z "${ENMCLI_ROLE}" ]; then
+                        ENMCLI_ROLE="OPERATOR"
+                        break
+                fi
+                if ! [[ ${ENMCLI_ROLE} =~ [A-Z] ]]; then
+                        echo -e "Invalid input. Please Use Upper Case\n"
+                fi
+
+        done
+        while true; do
+           echo -e "\n=========================================="
+           echo -e "        Check Input Values"
+           echo -e "=========================================="
+           echo -e "enm_commands: [ ${ENMCLI_CMD[@]} ]"
+           echo -e "enm_role: ${ENMCLI_ROLE[@]}"
+           echo -e "\n=========================================="
+           echo -e "\n"
+           read -a confirmation -p "Please review the above parameter, Enter yes if correct or no to cancel: "
+           if [ "${confirmation}" == "yes" ]; then
+               break
+           elif [ "${confirmation}" == "no" ]; then
+               return
+           fi
+       done
+
+        spit_enmcli_plugin >> ${YAML_FILENAME}
+}
+
+spit_enmcli_plugin() {
+        echo -e "\n- func_name: ENMCLI"
+        echo -e "  enm_commands: [ ${ENMCLI_CMD[@]} ]"
+        if ! [ -z "${ENMCLI_ROLE}" ]; then
+                echo -e "  enm_role: ${ENMCLI_ROLE[@]}"
+        fi
+}
+
+about_enmcli_plugin() {
+        echo "================================================="
+        echo "                Manual Action Plugin"
+        echo "================================================="
+        echo "Manual Action plugin will allow user to run any additional command or take any extra logs,"
+        echo "which is not defined in the current yaml file. For example if any command needs to be executed"
+        echo "on network elements using amos or element manager GUI etc."
+        echo "================================================="
+
+}
+manual_act_plugin() {
+        while true; do
+                echo -e "\nExample: User case in Data Collection Guild line Document"
+                read -a ACTION_TYPE -p "Enter Action title: "
+                if ! [ -z "${ACTION_TYPE}" ]; then
+                        break
+                fi
+                echo -e "\nYou have to enter a title\n"
+        done
+
+        while true; do
+                echo -e "\nExample: Steps to be done"
+                read -a MANUAL_CMDS -p "Enter Actions to be taken: "
+                if ! [ -z "${MANUAL_CMDS}" ]; then
+                        break
+                fi
+                echo -e "\nYou have to enter actions to be taken\n"
+
+        done
+         while true; do
+           echo -e "\n=========================================="
+           echo -e "        Check Input Values"
+           echo -e "=========================================="
+           echo -e "\n  - action_title: ${ACTION_TYPE[@]}"
+           echo -e "    action_list: [ ${MANUAL_CMDS[@]} ]"
+           echo -e "\n=========================================="
+           echo -e "\n"
+           read -a confirmation -p "Please review the above parameter, Enter yes if correct or no to cancel: "
+           if [ "${confirmation}" == "yes" ]; then
+               break
+           elif [ "${confirmation}" == "no" ]; then
+               return
+           fi
+       done
+
+        spit_manual_act_plugin >> ${YAML_FILENAME}
+}
+
+spit_manual_act_plugin() {
+        echo -e "\n- func_name: Manual Actions"
+        echo -e "  actions: "
+        echo -e "\n  - action_title: ${ACTION_TYPE[@]}"
+        echo -e "    action_list: [ ${MANUAL_CMDS[@]} ]"
+}
+
+about_additional_yaml() {
+        echo "================================================="
+        echo "            Execute another yaml Plugin"
+        echo "================================================="
+        echo "additional_yaml plugin can be used to execute another yml file"
+        echo "to collect the logs for the related application."
+        echo "================================================="
+}
+
+additional_yaml() {
+    while true; do
+        echo -e "\nEnter the path of the additional yaml file you wish to execute"
+        read -a PATH_FILE -p "Enter Path: "
+        echo ${PATH_FILE} | egrep "^/.*" > /dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            break
+        fi
+        echo -e "\nInvalid  path"
+    done
+    while true; do
+        echo -e "\n=========================================="
+        echo -e "        Check Input Values"
+        echo -e "=========================================="
+        echo -e " additional_config_file_path: [ ${PATH_FILE[@]} ]"
+        echo -e "\n=========================================="
+        echo -e "\n"
+        read -a confirmation -p "Please review the above parameter, Enter yes if correct or no to cancel: "
+        if [ "${confirmation}" == "yes" ]; then
+            break
+        elif [ "${confirmation}" == "no" ]; then
+            return
+        fi
+    done
+    spit_additional_yaml >> ${YAML_FILENAME}
+}
+spit_additional_yaml() {
+    echo -e "\n- func_name: Execute Additional Config File"
+    echo -e "  additional_config_file_path: [ ${PATH_FILE[@]} ]"
+}
+
+ask_feature_name() {
+        cat <<EOF
+---
+
+config_name: $@
+config_type: app
+
+functions:
+EOF
+}
+
+invalid_input() {
+    echo -e "\nInvalid Entry, You must choose a plug-in\n"
+    eval $(echo ask_for_plugin)
+}
+
+ask_for_plugin () {
+        while true; do
+                echo "========================="
+                echo "|      Plugin Menu      |"
+                echo "========================="
+                echo " 1. Use JBOSS Plugin."
+                echo " 2. Use Command plugin."
+                echo " 3. Use File Plugin."
+                echo " 4. Use ENM CLI plugin."
+                echo " 5. Use Copy From Old Image Plugin."
+                echo " 6. Use Manual Action Plugin"
+                echo " 7. Execute another yaml file."
+                echo -e " 0. Exit.\n"
+                read -a input -p "Please Enter option : "
+        case "${input}" in
+            1)  PLUG_NAME=jboss_plugin;;
+            2)  PLUG_NAME=cmd_plugin ;;
+            3)  PLUG_NAME=file_plugin ;;
+            4)  PLUG_NAME=enmcli_plugin ;;
+            5)  PLUG_NAME=image_file_plugin ;;
+            6)  PLUG_NAME=manual_act_plugin ;;
+            7)  PLUG_NAME=additional_yaml ;;
+            0)  break ;;
+            *) eval $(echo invalid_input) break;;
+        esac
+        if [ ${input} == '0' ]; then
+            break
+        else
+            eval about_$(echo ${PLUG_NAME})
+            echo "Are you sure you want to add this plug-in?"
+        fi
+        while true; do
+            read -a input -p "Enter [yes] to confirm or [no] to cancel: "
+            if [ "${input}" == 'yes' ]; then
+                echo -e "\n####################################################"
+                echo "#       Accepting input for ${PLUG_NAME}            #"
+                echo "####################################################"
+                eval $(echo ${PLUG_NAME})
+                [ "${confirmation}" == "yes" ] && echo -e "\n####################################################"
+                [ "${confirmation}" == "yes" ] && echo "#         Writing file ${YAML_FILENAME}              #"
+                [ "${confirmation}" == "yes" ] && echo "####################################################"
+                unset DEBUG_LEVEL VM_LIST TIMEOUT LOG_FILE_PATH SRV_TYPE CMD_SRV_NAME CMD_TO_EXEC FILE_SRV_TYPE FILE_SRV_NAME FILE_TO_COLLECT ENMCLI_CMD ENMCLI_CMD ENMCLI_ROLE ACTION_TYPE MANUAL_CMDS AGE_DEFAULT confirmation
+                break
+            elif [ "${input}" == "no" ]; then
+                break
+            else
+                echo "Invalid input"
+            fi
+        done
+    done
+}
+
+
+while [ -z "${CONFIG_NAME}" ]; do
+        echo "Enter the feature name to collect data"
+        echo "Example : DC_FOR_<FEATURE/USECASE>"
+        read -a CONFIG_NAME -p "Enter input : "
+done
+YAML_FILENAME="/tmp/$(echo ${CONFIG_NAME[@]} | tr -s " " "_").yml"
+if [[ -f ${YAML_FILENAME} ]]; then
+     while true; do
+        echo "WARNING : File already exist [${YAML_FILENAME}], do you want to append or overwrite it?"
+        read -a overesp -p "Enter [a] to append or [o] to overwrite: "
+        if [ "${overesp}" == 'o' ]; then
+                    ask_feature_name ${CONFIG_NAME[@]} > ${YAML_FILENAME}
+                        break
+                elif [ "${overesp}" == 'a' ]; then
+                    break
+                else
+                        echo "Invalid input."
+                fi
+        done
+else
+    ask_feature_name ${CONFIG_NAME[@]} > ${YAML_FILENAME}
+fi
+
+touch YAML_FILENAME
+ask_for_plugin ${YAML_FILENAME}
+echo -e "\n####################################################"
+echo "     YAML file generated - [${YAML_FILENAME}]"
+echo "####################################################"

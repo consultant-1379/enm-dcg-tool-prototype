@@ -1,0 +1,47 @@
+---
+##########################################################################################
+config_name: EFD
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- func_name: Commands
+  instances: scripting
+  sudo: True
+
+  execute_commands:
+  - hostname
+  - pwd
+  - ps -all
+  - vmstat -a -n -t -S M
+  - mpstat -u -P ALL
+  - ls -ladR /ericsson/pmic*/CELLTRACE/*
+  - ls -ladR /ericsson/pmic*/UETRACE/*
+  - ls -ladR /ericsson/pmic*/CTUM/*
+  - ls -ladR /ericsson/pmic*/ebm/*
+  - ls -laR /ericsson/tfd_cli_output
+  - ls -laR /ericsson/trace_file_decoder_cli
+
+  # Enable logging to the PM Event File Decoder log by editing the log4j.xml file, and changing the "Threshold" parameter and the root "priority", from "off" to "all".
+- func_name: Commands
+  instances: scripting
+  execute_commands:
+  - sudo sed -i 's/param name="Threshold" value="off"/param name="Threshold" value="all"/g' '/ericsson/trace_file_decoder_cli/log_conf/log4j.xml'
+  - sudo sed -i 's/priority value="off"/priority value="all"/g' '/ericsson/trace_file_decoder_cli/log_conf/log4j.xml'
+  sudo: False
+
+- func_name: wait
+  timeout: 60
+  message: Please reproduce JBOSS Debug issues
+  JBoss_servers:
+  - instances: scripting
+    rotated_log_file_path: /ericsson/3pp/jboss/standalone/log/server.log.1
+  # Restore the document to deactivate the trace settings.
+
+- func_name: Commands
+  instances: scripting
+  execute_commands:
+  - sudo sed -i 's/param name="Threshold" value="all"/param name="Threshold" value="off"/g' '/ericsson/trace_file_decoder_cli/log_conf/log4j.xml'
+  - sudo sed -i 's/priority value="all"/priority value="off"/g' '/ericsson/trace_file_decoder_cli/log_conf/log4j.xml'
+  sudo: False
+
+  

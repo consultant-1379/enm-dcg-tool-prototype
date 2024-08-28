@@ -1,0 +1,53 @@
+---
+##########################################################################################
+config_name: Bulk Export
+config_type: app # LCS program runs the functions defined in this file
+
+# To help to identify the possible causes of error scenarios and their resolution in Bulk Export, it is recommended to include Virtual Machine (VM) server logs or Diagnostics Data Collection (DDC) logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+
+# Log on to the impexpserv and cmserv Virtual Machines, refer to Connecting to a Virtual Machine for details.
+# Collect JBOSS Logs for each instance of impexpserv and cmserv VM, refer to Collect JBOSS Logs.
+- timeout: 60 # 60 seconds
+  func_name: JBOSS Debug # Enable and disable the debug logs
+  JBoss_servers:
+  - loggers:
+    - com.ericsson
+    instances: cmserv
+  - loggers:
+    - com.ericsson
+    instances: impexpserv
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+###########################################################
+# For Export use cases where non-persistent attributes are specified in the user-defined filter file, follow the instructions in If Issue Suspected in CM mediation section to get additional logs.
+# Execute another yaml file
+- func_name: Execute Additional Config File
+  additional_config_file_path: /cm/cm_mediation/cm_mediation_functions.yml
+
+###########################################################
+
+# Ask user to do the following actions
+- func_name: Manual Actions
+  actions:
+  - action_title: To include the job status of all export jobs on the system, run the following command in ENM CLI and save the response to a file (using Ctrl+Enter) for inclusion in the CSR
+    action_list:
+    - cmedit export --status
+
+  - action_title: To include additional information about a specific export job, run the following command in the ENM CLI, and save the response to a file for inclusion in the CSR
+    action_list:
+    - cmedit export --status --job <jobID> --verbose (where <jobID> is the job ID for the specified export.)
+
+  - action_title: Collect the DDC logs
+    action_list:
+    - Log on to DDP server where the site for the deployment is hosted.
+    - Navigate to the correct site for the deployment.
+    - Copy the DDP URL link for the site to the CSR.
+    - In ENM Statistics page, click Logs, then click Download ElasticSearch Logs. Download the relevant compressed log file (s) for the time period when the issue occurred (this is a combined log file for all the VM's).
+
+

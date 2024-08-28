@@ -1,0 +1,27 @@
+---
+
+config_name: postgresql01
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ db_cluster ]
+  files: [ /opt/ericsson/pgsql/install/postgresql01.install.log, /opt/rh/rh-postgresql94/root/var/lib/pgsql/pgstartup.log, /var/log/messages, /var/VRTSvcs/log/engine_A.log, /ericsson/postgres/data/z_pg_fs_monitor, /ericsson/postgres/data/PG_VERSION, /ericsson/postgres/data/postgresql.conf, /ericsson/postgres/data/pg_hba.conf ]
+
+- func_name: Files
+  server_type: vm
+  instances: [ postgres ]
+  files: [ /opt/ericsson/pgsql/install/postgresql01.install.log, /opt/rh/rh-postgresql94/root/var/lib/pgsql/pgstartup.log, /var/log/messages, /ericsson/postgres/data/z_pg_fs_monitor, /var/log/healthcheck.log, /ericsson/postgres/data/PG_VERSION, /ericsson/postgres/data/postgresql.conf, /ericsson/postgres/data/pg_hba.conf ]
+
+- func_name: Commands
+  server_type: peer servers
+  instances: [ db_cluster ]
+  execute_commands: [ /sbin/service postgresql01 status, /usr/bin/python /opt/ericsson/pgsql/pypgsql/crons/pg_fs_alarm.py, /bin/df -h ]
+
+- func_name: Commands
+  server_type: vm
+  instances: [ postgres ]
+  execute_commands: [ /sbin/service postgresql01 status, /usr/bin/python /opt/ericsson/pgsql/pypgsql/crons/pg_fs_alarm.py, /bin/df -h ]
+

@@ -1,0 +1,30 @@
+---
+##########################################################################################
+config_name: BSC alarm received incomplete or synchronization failure
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmprocessor.eventhandlers
+    - com.ericsson.oss.services.fm.alarmprocessor.util
+    - com.ericsson.oss.services.fm.alarmprocessor.fmavailabilityhandler
+    - com.ericsson.oss.services.fm.alarmprocessor.alarmsync
+    - com.ericsson.oss.services.fm.fmxadaptor.cdi.impl
+    instances: fmalarmprocessing
+  - loggers:
+    - com.ericsson.oss.mediation.fm.axe
+    instances: msapgfm
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+#######################################
+
+
+
+

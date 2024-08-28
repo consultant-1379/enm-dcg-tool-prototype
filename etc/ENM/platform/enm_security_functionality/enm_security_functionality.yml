@@ -1,0 +1,27 @@
+---
+##########################################################################################
+config_name: ENM Security Functionality
+config_type: app # the program can run the functions defined in this file
+# Include the set of logs mentioned here in the Customer Support Request (CSR) to identify possible causes of error scenarios and their resolution for PKI Solutions.
+##########################################################################################
+functions:
+- timeout: 300
+  func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmroutingservice
+    instances: pkiraserv
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmrouting
+    instances: sps
+  log_file_paths: [ /ericsson/3pp/jboss/standalone/log/server.log ]
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Execute Additional Config File
+  additional_config_file_path: /platform/postgresql/postgresql.yml
+- func_name: Manual Actions
+  actions:
+  - action_title: Follow the step 5, page 81 in Data Collection Guildlines
+

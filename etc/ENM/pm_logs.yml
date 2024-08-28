@@ -1,0 +1,17 @@
+---
+
+config_name: pm_logs
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: vm
+  instances: [ pmserv,mspm,pmrouterpolicy,medcore,mscmce,cmserv ]
+  files: [ /ericsson/3pp/jboss/standalone/log/,/var/log/messages ]
+
+- func_name: Cp From Old Image
+  instances: [ svc_cluster ]
+  vm_list: [ pmserv,mspm,pmrouterpolicy,medcore,mscmce,cmserv ]
+  log_path: [ /ericsson/3pp/jboss/standalone/log/,/var/log/messages ]
+  image_age: 2

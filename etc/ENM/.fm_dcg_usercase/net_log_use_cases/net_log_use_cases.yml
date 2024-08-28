@@ -1,0 +1,27 @@
+---
+##########################################################################################
+config_name: Netlog use cases
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.netlog
+    instances: fmserv
+  - loggers:
+    - com.ericsson.oss.mediation.log
+    - com.ericsson.oss.mediation.netlog
+    instances: msnetlog
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+#######################################
+
+
+
+

@@ -1,0 +1,51 @@
+---
+##########################################################################################
+config_name: Unable to download saved alarm file from Alarm Routing
+config_type: app # the program can run the functions defined in this file
+
+# To help to identify possible causes for any error scenario that may arise using CM Cell Management, include the following set of logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+###########################################################
+
+
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson
+    instances: apserv
+  - loggers:
+    - com.ericsson.oss.itpf.datalayer
+    - com.ericsson.oss.presentation.server.cellmgmt
+    - com.ericsson.oss.services.cm.cellmgmt
+    instances: apserv
+    level_value: TRACE
+
+
+  ####################################
+  - loggers:
+    - com.ericsson
+    instances: mscm
+
+  - loggers:
+    - com.ericsson.oss.mediation
+    instances: mscm
+    level_value: TRACE
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+
+
+
+- func_name: Manual Actions
+  actions:
+  - action_title: collect json files
+    action_list:
+    - Add relevant json requests and json responses to the CSR.
+
+
+

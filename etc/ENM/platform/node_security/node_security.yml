@@ -1,0 +1,25 @@
+---
+##########################################################################################
+config_name: Unable to download saved alarm file from Alarm Routing
+config_type: app # the program can run the functions defined in this file
+# Include the set of logs mentioned here in the Customer Support Request (CSR), to identify possible causes of error scenarios and their respective resolution on Node Security.
+# For every node security issue, you need to collect secserv logs. In some cases, it is also needed to collect logs from other Service Groups such as sps, pkiraserv, mscm or mscmce depending on the specific context.
+##########################################################################################
+functions:
+- timeout: 300
+  func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmroutingservice
+    instances: secserv
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmrouting
+    instances: sps
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmrouting
+    instances: pkiraserv
+  log_file_paths: [ /ericsson/3pp/jboss/standalone/log/server.log ]
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+

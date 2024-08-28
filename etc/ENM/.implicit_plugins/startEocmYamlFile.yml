@@ -1,0 +1,10 @@
+---
+
+config_name: startEocmYamlFile Extra functions
+config_type: app
+
+functions:
+- func_name: Commands
+  server_type: localhost
+  execute_commands:
+    - /bin/df -k

@@ -1,0 +1,11 @@
+---
+##########################################################################################
+config_name: Issue Suspected with WinFIOL
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- func_name: Manual Actions
+  actions:
+
+  - action_list:
+    - 'Cannot find out where the function is in the DCG document'

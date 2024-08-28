@@ -1,0 +1,30 @@
+---
+
+config_name: LITP
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: localhost
+  instances: [ localhost ]
+  files: [ /var/log/litp/litp_libvirt.log,/var/log/enminst.log,/etc/enm-version,/etc/enm-history,/var/log/litp/litpd_error.log,/var/log/litp/litpd_access.log,/var/log/puppet/masterhttp.log,/var/log/autoDeploy/serviceCheck/clusterData.txt,/var/log/autoDeploy/serviceCheck/enmInventory.txt,/var/log/autoDeploy/serviceCheck/vmServicesOnly.txt,/var/log/messages,/var/log/mcollective-audit.log,/var/log/mcollective.log ]
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ svc_cluster ]
+  files: [ /var/log/litp/litp_libvirt.log ]
+
+- func_name: Files
+  server_type: peer servers
+  instances: [ all_clusters ]
+  files: [ /var/log/messages,/var/VRTSvcs/log/engine_A.log,/var/log/mcollective-audit.log,/var/log/mcollective.log ]
+
+- func_name: Commands
+  server_type: peer servers
+  instances: [ all_clusters ]
+  execute_commands: [ hastatus -sum,lltstat,gabconfig -a,hastatus -sum,lltstat,gabconfig -a ]
+
+- func_name: Commands
+  server_type: localhost
+  execute_commands: [ /usr/bin/mco ping,/usr/bin/mco puppet status -v,service --status-all,/var/tmp/RNL/logcollector/lib/litp_export.bsh,litp show_plan,/opt/ericsson/enminst/bin/vcs.bsh --groups,/opt/ericsson/enminst/bin/enm_healthcheck.sh -v ]

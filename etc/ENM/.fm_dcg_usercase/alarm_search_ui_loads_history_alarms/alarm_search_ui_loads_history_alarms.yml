@@ -1,0 +1,37 @@
+---
+##########################################################################################
+config_name: Alarm Search UI is not able to load History Alarms
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmcontroldisplayservice
+    - com.ericsson.oss.services.fm.alarmqueryservice.impl
+    instances: fmserv
+  - loggers:
+    - com.ericsson.oss.itpf.datalayer.hqs
+    instances: fmhistory
+  - loggers:
+    - com.ericsson.oss.itpf.datalayer.dlms
+    - com.ericsson.oss.services.fm.alarmhistory
+    instances: dlms
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Files
+  server_type: vm
+  instances: solr
+  files:
+    - /ericsson/solr/install/solr-4.8.1/enm/logs/solr.log
+
+
+
+
+

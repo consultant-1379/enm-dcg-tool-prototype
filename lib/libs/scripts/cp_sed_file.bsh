@@ -1,0 +1,37 @@
+#!/bin/bash
+# ********************************************************************
+# Ericsson LMI                                    SCRIPT
+# ********************************************************************
+#
+# (c) Ericsson LMI 2014 - All rights reserved.
+#
+# The copyright to the computer program(s) herein is the property
+# of Ericsson LMI. The programs may be used and/or copied only with
+# the written permission from Ericsson LMI or in accordance with the
+# terms and conditions stipulated in the agreement/contract under
+# which the program(s) have been supplied.
+#
+# ********************************************************************
+# Name    : cp_sed_file.bsh
+# Purpose : Script to copy the sed file from the system if available.
+#
+# Usage   : cp_sed_file.bsh <PATH>
+#
+# ********************************************************************
+
+OUTPUT_PATH=$1
+/usr/bin/yum list | grep ERIClitpcore > /dev/null 2>&1
+if [[ $? -eq 0 ]]; then
+    SED_FILE=$(tail -1 /opt/ericsson/enminst/log/cmd_arg.log | /usr/bin/perl 2> /dev/null -pi -e 's|.*-{1,2}s.{0,2}[ ]+(\S*).*|$1|g')
+    if [[ -f ${SED_FILE} ]]; then
+        /bin/cp ${SED_FILE} ${OUTPUT_PATH}/
+        SED_FILE_NAME=$(basename ${SED_FILE})
+        if [[ -f ${OUTPUT_PATH}/${SED_FILE_NAME} ]]; then
+            /bin/gzip ${OUTPUT_PATH}/${SED_FILE_NAME}
+        fi
+        else
+        echo "SED file not found" >> ${OUTPUT_PATH}/cp_sed_file.out
+    fi
+fi
+
+		    

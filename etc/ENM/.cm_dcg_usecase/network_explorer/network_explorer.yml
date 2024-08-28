@@ -1,0 +1,53 @@
+---
+##########################################################################################
+config_name: Issue Suspected on Network Explorer
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.itpf.datalayer.dps
+    - com.ericsson.oss.services.cm
+    instances: netex
+
+    level_value: TRACE
+
+  - loggers:
+    - com.ericsson
+    instances: netex
+  - loggers:
+    - com.ericsson
+    instances: mscm
+  - loggers:
+    - com.ericsson
+    instances: mscmce
+  - loggers:
+    - com.ericsson
+    instances: mscmip
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: OS Commands
+  output_file: Generate_a_thread_dump.txt
+  sudo: True
+  os_commands:
+  - PID=$(/usr/java/default/bin/jps -lv | grep -m 1 jboss | cut -d " " -f1)'
+  - kill -3 $PID
+
+- func_name: Manual Actions
+
+  actions:
+
+  - action_title: If any value appearing in results is unexpected, click on the checkbox in first column of respective Managed Object Instance. It will open the Details panel in right.
+  - action_title: If a non-persistent attribute is showing unexpected value, please click on Non Persistent Attributes drop down in Details panel.
+    action_list:
+    - Take screenshot showing result table and Details panel with timestamp visible in it.
+    - If possible, execute the command in CLI and take screenshot with timestamp visible in it. Try to follow this step at same time you are seeing issue in NetworkExplorer.
+
+
+    

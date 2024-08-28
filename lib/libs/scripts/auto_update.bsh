@@ -1,0 +1,90 @@
+#!/bin/bash
+LCS_HOME="/opt/ericsson/lcs/"
+if [[ ! -f ${LCS_HOME}/etc/.auto_update ]]; then
+        exit
+fi
+function cat_file () {
+    CURRENT_VER=$1
+    CTR=1
+    START_PRINT="DONTPRINT"
+    START_PRINT2="DONTPRINT"
+    while IFS= read -r line; do
+        if [[ "$line" == "#RPM_VERSION=${CURRENT_VER}" ]]; then START_PRINT=CHAPO; continue; fi
+        if [[ "${START_PRINT}" == "CHAPO" ]]; then
+            echo $line | egrep "^#RPM_VERSION=" > /dev/null 2>&1
+            if [[ $? -eq 0 ]]; then START_PRINT2="CHAPO"; continue; fi
+        fi
+        if [[ "${START_PRINT2}" == "CHAPO" ]]; then
+            echo ${line} | egrep "^#" > /dev/null 2>&1
+            if [[ $? -ne 0 ]]; then
+                if [[ -z "${line}" ]]; then continue; fi
+                echo ${CTR}. $(echo ${line} |  perl -pi -e 's|^[0-9]+.(.+)|$1|g')
+                ((CTR++))
+            fi
+        fi
+    done < /tmp/change_l0g
+}
+
+
+#FTP_URL=ftp.athtem.eei.ericsson.se
+FTP_URL=$(grep "^FTP_URL" ${LCS_HOME}/etc/.auto_update | awk -F '=' '{print $NF}')
+CHANGE_LOG_URL=${FTP_URL}/LCS_DO_NOT_REMOVE/lcs_change_log.txt
+RPM_URL=$(grep "^RPM_URL" ${LCS_HOME}/etc/.auto_update)
+#"ftp://ftp.athtem.eei.ericsson.se/LCS_DO_NOT_REMOVE/lcs_change_log.txt"
+#RPM_URL="ftp://ftp.athtem.eei.ericsson.se/LCS_DO_NOT_REMOVE/lcs_latest.rpm"
+
+ping -c 1 ${FTP_URL} > /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+    echo "Failed to ping the software software repository to check the latest RPM."
+    exit
+fi
+rm -f /tmp/change_l0g > /dev/null 2>&1
+wget --user=anonymous --password=anonymous -O /tmp/change_l0g ftp://${CHANGE_LOG_URL} > /dev/null 2>&1
+if [[ ! -s "/tmp/change_l0g" ]]; then
+    echo "Unable to fetch the change log. Exiting...."
+        exit 1
+fi
+LATEST_RPM_FILENAME=$(grep "^#LATEST_RPM_FILENAME" /tmp/change_l0g | tail -1 | awk -F '=' '{print $NF}' | perl -pi -e 's|[ ]*(.+)[ ]*|$1|g')
+CHNAGE_LOG_RPM_VERSION=$(grep "^#RPM_VERSION" /tmp/change_l0g | tail -1 | awk -F '=' '{print $2}' | awk -F '.' '{print $1$2}')
+CURRENT_VER=$(rpm -qi $(rpm -qa | grep lcs) | egrep "Version[ ]+:[ ]+")
+CURRENT_VERSION=$(rpm -qi $(rpm -qa | grep lcs) | egrep "Version[ ]+:[ ]+" | awk -F ':' '{print $2}' | awk '{print $1}')
+if [[ $(echo  ${CURRENT_VERSION} | awk -F '.' '{print $1$2}') -ge ${CHNAGE_LOG_RPM_VERSION} ]]; then
+    echo "No need to update the RPM"
+        exit 0
+fi
+echo "#########################"
+echo "There is a higher version of LCS RPM [${LATEST_RPM_FILENAME}] avilable to upgrade. Following bug fix/feature added in latest RPM"
+echo "Current Version [${CURRENT_VERSION}]"
+echo "Latest Version [$(grep "^#RPM_VERSION" /tmp/change_l0g | tail -1 | awk -F '=' '{print $2}')]"
+echo -e "#########################\n"
+cat_file ${CURRENT_VERSION}
+echo -e "\n#########################"
+while true;
+do
+    echo "Do You want to upgrade the LCS RPM now."
+    read -r -p "Yes or no? " response
+    if [[ ${response} =~ ^([Y][e][s])$ ]]; then
+        echo "You chose yes"
+                break
+        elif [[ ${response} =~ ^([nN][oO]|[nN])$ ]]; then
+                exit 0
+        else
+        echo "invalid input."
+    fi
+done
+if [[ "${response}" == "Yes" ]]; then
+    echo "Downloading the latest RPM, please wait...."
+    rm -f /tmp/lcs_latest.rpm > /dev/null 2>&1
+    wget --user=anonymous --password=anonymous -O /tmp/lcs_latest.rpm ftp://${FTP_URL}/LCS_DO_NOT_REMOVE/${LATEST_RPM_FILENAME}.rpm > /dev/null 2>&1
+    if [[ ! -s "/tmp/lcs_latest.rpm" ]]; then
+        echo "Unable to fetch the latest RPM. Exiting...."
+            exit 1
+    fi
+fi
+rpm -U /tmp/lcs_latest.rpm > /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+        echo "Failed to update the RPM"
+        exit 1
+fi
+rm -f /tmp/lcs_latest.rpm > /dev/null 2>&1
+rm -f /tmp/change_l0g > /dev/null 2>&1

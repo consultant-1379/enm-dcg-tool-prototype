@@ -1,0 +1,9 @@
+---
+
+config_name: .autoexec
+config_type: app
+
+functions:
+
+- func_name: ENMCLI
+  enm_commands: [ cmedit get * networkelement.netype -t ]

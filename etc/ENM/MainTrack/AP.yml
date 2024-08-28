@@ -1,0 +1,42 @@
+---
+
+config_name: AP
+config_type: app
+
+functions:
+
+- func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers: [ com.ericsson ]
+    instances: [ apserv,shmserv,shmcoreserv,mscm,mscmce,mscmip,cmserv,impexpserv ]
+  timeout: 600
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Files
+  server_type: localhost
+  files: [ /var/log/enminst.log,/etc/enm-history ]
+
+- func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers: [ com.ericsson ]
+    instances: [ apserv,msap,said ]
+  timeout: 600
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Cp From Old Image
+  instances: [ svc_cluster ]
+  vm_list: [ apserv ]
+  log_path: [ /ericsson/3pp/jboss/standalone/log/server.log ]
+  image_age: 1
+
+- func_name: Commands
+  server_type: localhost
+  execute_commands: [ /opt/ericsson/enminst/bin/enm_healthcheck.sh -v,/opt/ericsson/enminst/bin/vcs.bsh --groups ]

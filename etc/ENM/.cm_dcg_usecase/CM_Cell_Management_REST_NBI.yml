@@ -1,0 +1,22 @@
+---
+
+config_name: CM_Cell_Management_REST_NBI
+config_type: app
+
+functions:
+
+- func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers: [ com.ericsson ]
+    instances: [ apserv,mscm,mscmce ]
+  timeout: 600
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Manual Actions
+  actions:
+  - action_title: To collect json files
+    action_list: [ Add relevant json requests and json responses to the CSR. ]

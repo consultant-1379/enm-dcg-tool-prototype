@@ -1,0 +1,58 @@
+---
+##########################################################################################
+config_name: CM Mediation Functions
+config_type: app # the program can run the functions defined in this file
+
+# To help to identify the causes for any error scenario that may arise while using CM Mediation to add or remove nodes, or perform CRUDA (Create, Read, Update, Delete or Action) operations, it is recommended to include Virtual Machine (VM) server logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+- func_name: Manual Actions
+  actions:
+
+  - action_title: If you encounter a reproducible error while performing an operation through the Command Line Interface (CLI)
+    action_list:
+    - Save the CLI response output to a file by entering the command and pressing CTRL + ENTER.
+
+  - action_title: Copy the CLI command to the cli_cmd.txt file and store both files into the directory above.
+  - action_title: If the operation was performed by using an import file or CLI batch file
+    action_list:
+    - Copy the file(s) into the directory above.
+
+
+
+# TODO: Enable the Visibroker-specific logging by following Steps 1 and 2 in Collecting Visibroker Logs.
+
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.mediation
+    - com.ericsson.nms.mediation
+    instances: cmserv
+    level_value: TRACE
+  - loggers:
+    - com.ericsson.oss.mediation
+    - com.ericsson.nms.mediation
+    instances: comecimpolicy
+    level_value: TRACE
+  - loggers:
+    - com.ericsson.oss.mediation
+    - com.ericsson.nms.mediation
+    instances: medrouter
+    level_value: TRACE
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+# TODO: Disable the Visibroker logging and collect the Visbroker logs by following Steps 5 and 6 in Collecting Visibroker Logs.
+
+- func_name: Manual Actions
+  actions:
+
+  - action_title: In case of OOM of VM on a Physical Deployment
+    action_list:
+    - If the heap runs out of memory, collect the heap dump from the Management Server (MS) or Local MS (LMS).
+    - If there are hprof files related to the Service Group (SG), they can be extracted through SFTP from the /ericsson/enm/dumps path.
+    - If a VM runs out of memory, copy the last_undefined image for the VM and extract the sar information from the /var/log/sa/sa10 file.
+    

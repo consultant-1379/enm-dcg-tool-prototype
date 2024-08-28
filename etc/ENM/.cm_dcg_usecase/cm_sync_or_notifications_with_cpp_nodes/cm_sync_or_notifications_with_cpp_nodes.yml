@@ -1,0 +1,67 @@
+---
+##########################################################################################
+config_name: Issue Suspected on CM Sync or Notifications with CPP Nodes
+config_type: app # the program can run the functions defined in this file
+# To help to identify possible causes of error scenarios and their resolution on CM Sync and Notifications involving CPP Nodes, include the following set of logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+
+# Step 1
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+
+
+  # 1. mscm
+  - loggers:
+    - com.ericsson.oss.mediation.notifications.impl.MessageListenerImpl
+    - com.ericsson.oss.mediation.network.notifications.SubscriptionWorker
+    - com.ericsson.oss.mediation.network.notifications.UnSubscriptionWorker
+    - com.ericsson.oss.mediation.network.notifications.SubscriptionVerificationWorker
+    - com.ericsson.oss.mediation.cpp.subscription.validation.handler.SubscriptionValidationHandler
+    - com.ericsson.nms.mediation.component.dps.handlers
+    - com.ericsson.nms.mediation.component.dps.operators
+    instances: mscm
+
+
+  - loggers:
+    - com.ericsson.oss.mediation.network.notifications.NotificationReceiver
+    - com.ericsson.oss.mediation.cpp.notificationhandling.handlers
+    - com.ericsson.oss.mediation.component.subscription.handler.SubscriptionCreationHandler
+    level_value: TRACE
+    instances: mscm
+
+
+  # 2. comecimpolicy
+  - instances: mscm
+    loggers:
+    - com.ericsson.oss.mediation.cm.router.policy
+
+  # 3. eventbasedclient
+  - loggers:
+    - com.ericsson.oss.mediation.core.client.EventBasedMediationClientBean
+    file_handlers:
+    - ENM_FILE
+    instances: eventbasedclient
+
+  # 4. supervc
+  - loggers:
+    - com.ericsson.oss.mediation.clients.supervision
+    file_handlers:
+    - ENM_FILE
+    instances: supervc
+
+  # 4. medrouter
+  - loggers:
+    - com.ericsson.oss.mediation.core.registration.impl
+    file_handlers:
+    - ENM_FILE
+    instances: medrouter
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+###########################################################
+
+  

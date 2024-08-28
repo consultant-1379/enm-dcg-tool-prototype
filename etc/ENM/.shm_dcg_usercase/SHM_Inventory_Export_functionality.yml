@@ -1,0 +1,11 @@
+---
+
+config_name: SHM_Inventory_Export_functionality
+config_type: app
+
+functions:
+
+- func_name: Files
+  server_type: vm
+  instances: [ impexpserv,shmserv ]
+  files: [ /ericsson/3pp/jboss/standalone/log/server.log* ]

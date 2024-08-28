@@ -1,0 +1,13 @@
+---
+##########################################################################################
+config_name: Issue Suspected with WinFIOL CLI/GUI
+
+config_type: app # the program can run the functions defined in this file
+# To identify possible causes of error scenarios and their resolution on WinFIOL VM or Element Manager VM, include the following set of logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+- func_name: Manual Actions
+  actions:
+
+  - action_list:
+    - Under construction

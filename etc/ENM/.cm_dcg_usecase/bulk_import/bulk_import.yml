@@ -1,0 +1,49 @@
+---
+##########################################################################################
+config_name: Bulk Import
+config_type: app # the program can run the functions defined in this file
+
+# To help to identify possible causes for any error scenario that may arise using Bulk Import, it is recommended to include Virtual Machine (VM) Server logs in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+###########################################################
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.cm.bulkimport
+    instances: impexpserv
+
+  - loggers:
+    - com.ericsson.oss.services
+    instances: cmserv
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Manual Actions
+  actions:
+
+  - action_title: 'Do a dump of import database'
+    action_list:
+    - 'Connect to the active database node: ssh root@<active_db_node>'
+    - 'Dump importdb postgres database to file: /opt/rh/rh-postgresql94/root/usr/bin/pg_dump importdb -U postgres -h postgresql01 > dumpFile'
+
+  - action_title: 'Collect the list of files processed by import'
+    action_list:
+    - Connect to the impexpserv VM.
+    - 'Dump the output of the following command to file: ls -ltrh /ericsson/config_mgt/import_files > files.out'
+
+
+- func_name: Manual Actions
+  actions:
+
+  - action_title: To collect DDC logs
+    action_list:
+    - Log on to DDP server.
+    - Add the DDP link to the CSR.
+    - In ENM Statistics page, click the link Logs, then click the link Download ElasticSearch Logs, and download the relevant compressed log file. (This is a combined log file for all the VM's).
+
+

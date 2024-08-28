@@ -1,0 +1,45 @@
+---
+##########################################################################################
+config_name: History alarms missing
+config_type: app # the program can run the functions defined in this file
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmhistory
+    instances: dlms
+  - loggers:
+    - com.ericsson.oss.services.fm.alarmprocessor.eventhandlers
+    - com.ericsson.oss.services.fm.alarmprocessor.util
+    - com.ericsson.oss.services.fm.alarmprocessor.fmavailabilityhandler.alarmprocessor.eventhandlers
+    - com.ericsson.oss.services.fm.alarmprocessor.alarmsync.alarmprocessor.util
+    - com.ericsson.oss.services.fm.alarmprocessor.fmavailabilityhandler
+    - com.ericsson.oss.services.fm.alarmprocessor.alarmsync
+    instances: fmalarmprocessing
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+- func_name: Files
+  server_type: vm
+  instances: solr
+  files:
+    - /ericsson/solr/install/solr-4.8.1/enm/logs/solr.log
+
+- func_name: Files
+  sever_type: vm
+  instances: dlms
+  files:
+    - /ericsson/enm/dlms/history/data/.
+
+
+#######################################
+
+
+
+

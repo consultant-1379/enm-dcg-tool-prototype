@@ -1,0 +1,32 @@
+---
+##########################################################################################
+config_name: Discovering a Transport Node
+config_type: app # the program can run the functions defined in this file
+
+# To help identify possible causes of error scenarios and their resolution while discovering a Transport, include the following set of logs in the Customer Support Request (CSR).
+# The Network Discovery application supports the following transport network elements:
+# IP Router 6672
+# Fronthaul 6080
+# MINI-LINK Indoor
+# CISCO-ASR9000
+# CISCO-ASR900
+# JUNIPER-MX
+# MINI-LINK-6351
+# MINI-LINK-6352
+# MINI-LINK-PT2020
+# Switch 6391
+##########################################################################################
+functions:
+- timeout: 60
+  func_name: JBOSS Debug
+  JBoss_servers:
+  - loggers:
+    - com.ericsson
+    instances: mscmip
+  - loggers:
+    - com.ericsson
+    instances: ipsmserv
+  log_file_paths: [ /ericsson/3pp/jboss/standalone/log/server.log ]
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w

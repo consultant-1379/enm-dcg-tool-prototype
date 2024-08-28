@@ -1,0 +1,10 @@
+#!/bin/bash
+FILE=$1
+if [ -f $FILE ]; then
+    echo 'type-file';
+elif [ -d $FILE ]; then
+    echo 'type-directory';
+else
+    echo 'type-neither';
+fi
+#/bin/rm -- "$0"

@@ -1,0 +1,48 @@
+---
+##########################################################################################
+config_name: CM Sync or Notifications with Nodes Supporting ECIM
+config_type: app # the program can run the functions defined in this file
+
+# To help to identify possible causes of error scenarios and their resolution on CM Sync and Notifications involving nodes supporting ECIM, include the log set in the Customer Support Request (CSR).
+##########################################################################################
+functions:
+###########################################################
+- timeout: 60
+  func_name: JBOSS Debug
+  log_file_paths:
+  - /ericsson/3pp/jboss/standalone/log/server.log
+  JBoss_servers:
+  - loggers:
+    - com.ericsson.oss.mediation.handlers
+    - com.ericsson.oss.mediation.cba.handlers
+    - com.ericsson.oss.mediation.adapter.netconf
+    instances: mscmce
+
+  - loggers:
+    - com.ericsson.oss.mediation.cm.router.policy
+    - com.ericsson.oss.mediation.cm.router.heartbeat
+    instances: comecimpolicy
+
+  - loggers:
+    - com.ericsson.oss.mediation.core.client.EventBasedMediationClientBean
+    file_handlers:
+    - ENM_FILE
+    instances: eventbasedclient
+
+  - loggers:
+    - com.ericsson.oss.mediation.clients.supervision
+    file_handlers:
+    - ENM_FILE
+    instances: supervc
+
+  - loggers:
+    - com.ericsson.oss.mediation.core.registration.impl
+    file_handlers:
+    - ENM_FILE
+    instances: medrouter
+  Jboss_commands:
+    - run_commands: true
+    - commands: tcpdump -i any -w
+
+
+
